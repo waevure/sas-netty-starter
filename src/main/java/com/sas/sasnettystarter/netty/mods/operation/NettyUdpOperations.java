@@ -1,15 +1,15 @@
-package com.sas.sasnettystarter.netty.mods.ab;
+package com.sas.sasnettystarter.netty.mods.operation;
 
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
 
 /**
- * @InterfaceName: NettyUdpAbility
+ * @InterfaceName: NettyUdpOperations
  * @Description: netty-udp能力
  * @Author: Wqy
  * @Date: 2025-09-24 15:15
  * @Version: 1.0
  **/
-public interface NettyUdpAbility {
+public interface NettyUdpOperations {
 
     /**
      * 下发指令

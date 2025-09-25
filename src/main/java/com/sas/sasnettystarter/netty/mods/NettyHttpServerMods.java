@@ -1,22 +1,14 @@
 package com.sas.sasnettystarter.netty.mods;
 
-import com.sas.sasnettystarter.netty.IpPortAddress;
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.cache.Variable;
-import com.sas.sasnettystarter.netty.mods.ab.NettyHttpClientAbility;
-import com.sas.sasnettystarter.netty.mods.ab.NettyHttpServerAbility;
-import com.sas.sasnettystarter.netty.utils.GsonUtils;
-import io.netty.bootstrap.Bootstrap;
+import com.sas.sasnettystarter.netty.mods.operation.NettyHttpServerOperations;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
-import io.netty.handler.codec.http.*;
-import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * @ClassName: NettyHttpClientMods
@@ -26,7 +18,7 @@ import java.util.function.Function;
  * @Version: 1.0
  **/
 @Slf4j
-public class NettyHttpServerMods extends NettyServerMods implements NettyHttpServerAbility {
+public class NettyHttpServerMods extends NettyServerMods implements NettyHttpServerOperations {
 
     /**
      * @param nettyType   类型

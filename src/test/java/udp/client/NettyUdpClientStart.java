@@ -5,8 +5,7 @@ import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
 import com.sas.sasnettystarter.netty.log.LogMerge;
-import com.sas.sasnettystarter.netty.mods.ab.NettyUdpAbility;
-import com.sas.sasnettystarter.netty.unpack.Unpacking;
+import com.sas.sasnettystarter.netty.mods.operation.NettyUdpOperations;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.logging.LogLevel;
@@ -73,7 +72,7 @@ public class NettyUdpClientStart {
         scheduler.scheduleAtFixedRate(() -> {
            try {
                System.out.println(Thread.currentThread().getName() + " 定时任务执行: " + System.currentTimeMillis());
-               NettyUdpAbility ability = NettyUdpClientGuide.udpServer(pa);
+               NettyUdpOperations ability = NettyUdpClientGuide.udpServerOperations(pa);
                // 下发指令
                ability.distributeInstruct(new NettyWriteBo("127.0.0.1", 6677));
            }catch (Exception e){
@@ -88,7 +87,7 @@ public class NettyUdpClientStart {
             NettyUdpClientProject pe = new NettyUdpClientProject("UDP客户端", "10001");
             serverStart.startUdpClient(pe);
             Thread.sleep(3000);
-            NettyUdpClientGuide.udpServer(pe).distributeInstruct(new NettyWriteBo("127.0.0.1", 6677));
+            NettyUdpClientGuide.udpServerOperations(pe).distributeInstruct(new NettyWriteBo("127.0.0.1", 6677));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

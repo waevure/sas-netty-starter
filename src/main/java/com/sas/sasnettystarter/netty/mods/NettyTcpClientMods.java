@@ -6,11 +6,10 @@ import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.constant.NettyConstant;
 import com.sas.sasnettystarter.netty.exception.NettyLinkException;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
-import com.sas.sasnettystarter.netty.mods.ab.NettyTcpClientAbility;
+import com.sas.sasnettystarter.netty.mods.operation.NettyTcpClientOperations;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,7 +24,7 @@ import java.util.function.Function;
  * @Version: 1.0
  **/
 @Slf4j
-public class NettyTcpClientMods extends NettyServerMods implements NettyTcpClientAbility {
+public class NettyTcpClientMods extends NettyServerMods implements NettyTcpClientOperations {
 
     public NettyTcpClientMods(ProjectAbstract pe, NettyType nettyType, Bootstrap bootstrap, EventLoopGroup group, Function<Channel, Boolean> startSuccessCallback) {
         super(pe, nettyType);

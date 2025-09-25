@@ -55,7 +55,11 @@ public class NettySupport {
     private NettyLink nettyLink;
 
     /**
-     * netty模块
+     * Netty模块
+     * 对Netty应用能力的抽象
+     * NettyMods：定义项目环境等Netty基础信息
+     * NettyServerMods：定义Netty的环境信息系。
+     *
      */
     private NettyMods mods;
 

@@ -1,7 +1,7 @@
 package com.sas.sasnettystarter.netty;
 
 import com.sas.sasnettystarter.netty.mods.*;
-import com.sas.sasnettystarter.netty.mods.ab.*;
+import com.sas.sasnettystarter.netty.mods.operation.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
@@ -54,7 +54,7 @@ public abstract class NettyGuideAbstract {
      *
      * @param ptEnum 类型
      */
-    public static NettyTcpClientAbility tcpClient(ProjectAbstract ptEnum) {
+    public static NettyTcpClientOperations tcpClientOperations(ProjectAbstract ptEnum) {
         //获取netty_support
         NettySupport support = NettyGuideAbstract.NETTY_GUIDE.get(ptEnum);
         if (Objects.isNull(support)) {
@@ -63,7 +63,7 @@ public abstract class NettyGuideAbstract {
         NettyMods mods = support.getMods();
         // 客户端
         if (NettyType.C_TCP == mods.nettyType) {
-            return (NettyTcpClientAbility) mods;
+            return (NettyTcpClientOperations) mods;
         }
 
         log.error("--------{}该模块不为tcp客户端-------", ptEnum);
@@ -77,7 +77,7 @@ public abstract class NettyGuideAbstract {
      *
      * @param ptEnum 类型
      */
-    public static NettyHttpClientAbility httpClient(ProjectAbstract ptEnum) {
+    public static NettyHttpClientOperations httpClientOperations(ProjectAbstract ptEnum) {
         //获取netty_support
         NettySupport support = NettyGuideAbstract.NETTY_GUIDE.get(ptEnum);
         if (Objects.isNull(support)) {
@@ -86,7 +86,7 @@ public abstract class NettyGuideAbstract {
         NettyMods mods = support.getMods();
         // 客户端
         if (NettyType.C_HTTP == mods.nettyType) {
-            return (NettyHttpClientAbility) mods;
+            return (NettyHttpClientOperations) mods;
         }
 
         log.error("--------{}该模块不为http客户端-------", ptEnum);
@@ -100,7 +100,7 @@ public abstract class NettyGuideAbstract {
      *
      * @param ptEnum 类型
      */
-    public static NettyTcpServerAbility tcpServer(ProjectAbstract ptEnum) {
+    public static NettyTcpServerOperations tcpServerOperations(ProjectAbstract ptEnum) {
         //获取netty_support
         NettySupport support = NettyGuideAbstract.NETTY_GUIDE.get(ptEnum);
         if (Objects.isNull(support)) {
@@ -109,7 +109,7 @@ public abstract class NettyGuideAbstract {
         NettyMods mods = support.getMods();
         // 服务端
         if (NettyType.S_TCP == mods.nettyType) {
-            return (NettyTcpServerAbility) mods;
+            return (NettyTcpServerOperations) mods;
         }
 
         log.error("--------{}该模块不为tcp服务端-------", ptEnum);
@@ -124,7 +124,7 @@ public abstract class NettyGuideAbstract {
      *
      * @param ptEnum 类型
      */
-    public static NettyUdpAbility udpServer(ProjectAbstract ptEnum) {
+    public static NettyUdpOperations udpServerOperations(ProjectAbstract ptEnum) {
         //获取netty_support
         NettySupport support = NettyGuideAbstract.NETTY_GUIDE.get(ptEnum);
         if (Objects.isNull(support)) {
@@ -133,7 +133,7 @@ public abstract class NettyGuideAbstract {
         NettyMods mods = support.getMods();
         // 服务端
         if (NettyType.UDP == mods.nettyType) {
-            return (NettyUdpAbility) mods;
+            return (NettyUdpOperations) mods;
         }
 
         log.error("--------{}该模块不为udp服务端-------", ptEnum);
@@ -147,7 +147,7 @@ public abstract class NettyGuideAbstract {
      *
      * @param ptEnum 类型
      */
-    public static NettyNoNetworkAbility noNetworkChannel(ProjectAbstract ptEnum) {
+    public static NettyNoNetworkOperations noNetworkChannelOperations(ProjectAbstract ptEnum) {
         //获取netty_support
         NettySupport support = NettyGuideAbstract.NETTY_GUIDE.get(ptEnum);
         if (Objects.isNull(support)) {
@@ -156,7 +156,7 @@ public abstract class NettyGuideAbstract {
         NettyMods mods = support.getMods();
         // 客户端
         if (NettyType.NO_NETWORK_CHANNEL == mods.nettyType) {
-            return (NettyNoNetworkAbility) mods;
+            return (NettyNoNetworkOperations) mods;
         }
 
         log.error("--------{}该模块不为无网络的channel-------", ptEnum);

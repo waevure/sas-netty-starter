@@ -2,8 +2,7 @@ package com.sas.sasnettystarter.netty.mods;
 
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
-import com.sas.sasnettystarter.netty.mods.ab.NettyNoNetworkAbility;
-import io.netty.buffer.Unpooled;
+import com.sas.sasnettystarter.netty.mods.operation.NettyNoNetworkOperations;
 import io.netty.channel.embedded.EmbeddedChannel;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
  **/
 @Data
 @Slf4j
-public class NettyNoNetworkChannelMods extends NettyServerMods implements NettyNoNetworkAbility {
+public class NettyNoNetworkChannelMods extends NettyServerMods implements NettyNoNetworkOperations {
 
     private EmbeddedChannel channel;
 

@@ -4,9 +4,8 @@ import com.sas.sasnettystarter.netty.IpPortAddress;
 import com.sas.sasnettystarter.netty.NettyLink;
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
-import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
 import com.sas.sasnettystarter.netty.log.LogMerge;
-import com.sas.sasnettystarter.netty.mods.ab.NettyHttpClientAbility;
+import com.sas.sasnettystarter.netty.mods.operation.NettyHttpClientOperations;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.http.HttpClientCodec;
@@ -87,7 +86,7 @@ public class NettyHttpClientStart {
             serverStart.startNoNetworkChannel(pe);
             Thread.sleep(1000);
             // 获取客户端能力
-            NettyHttpClientAbility ability = NettyHttpClientGuide.httpClient(pe);
+            NettyHttpClientOperations ability = NettyHttpClientGuide.httpClientOperations(pe);
             // 连接
             ability.connectSync(new IpPortAddress("127.0.0.1", 8877));
             Thread.sleep(5000);
@@ -95,7 +94,7 @@ public class NettyHttpClientStart {
             tm.put("key", "value");
             tm.put("key2", "value2");
             // 连接server
-            NettyHttpClientGuide.httpClient(pe).sendGetRequest(
+            NettyHttpClientGuide.httpClientOperations(pe).sendGetRequest(
                     "/test/ww",
                     tm,
                     new IpPortAddress("127.0.0.1", 8877),

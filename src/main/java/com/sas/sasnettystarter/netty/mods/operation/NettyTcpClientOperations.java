@@ -1,19 +1,16 @@
-package com.sas.sasnettystarter.netty.mods.ab;
+package com.sas.sasnettystarter.netty.mods.operation;
 
 import com.sas.sasnettystarter.netty.IpPortAddress;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
-import io.netty.channel.ChannelHandlerContext;
-
-import java.util.Map;
 
 /**
- * @InterfaceName: NettyTcpClientAbility
+ * @InterfaceName: NettyTcpClientOperations
  * @Description: netty-tcp客户端能力
  * @Author: Wqy
  * @Date: 2025-09-24 15:15
  * @Version: 1.0
  **/
-public interface NettyTcpClientAbility {
+public interface NettyTcpClientOperations {
 
     /**
      * 同步连接

@@ -6,7 +6,7 @@ import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.constant.NettyConstant;
 import com.sas.sasnettystarter.netty.exception.NettyLinkException;
-import com.sas.sasnettystarter.netty.mods.ab.NettyHttpClientAbility;
+import com.sas.sasnettystarter.netty.mods.operation.NettyHttpClientOperations;
 import com.sas.sasnettystarter.netty.utils.GsonUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
@@ -27,7 +27,7 @@ import java.util.function.Function;
  * @Version: 1.0
  **/
 @Slf4j
-public class NettyHttpClientMods extends NettyServerMods implements NettyHttpClientAbility {
+public class NettyHttpClientMods extends NettyServerMods implements NettyHttpClientOperations {
 
     public NettyHttpClientMods(ProjectAbstract pe, NettyType nettyType, Bootstrap bootstrap, EventLoopGroup group) {
         super(pe, nettyType);

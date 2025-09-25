@@ -1,4 +1,4 @@
-package com.sas.sasnettystarter.netty.mods.ab;
+package com.sas.sasnettystarter.netty.mods.operation;
 
 import com.sas.sasnettystarter.netty.IpPortAddress;
 import io.netty.channel.ChannelFuture;
@@ -8,13 +8,13 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * @InterfaceName: NettyHttpClientAbility
+ * @InterfaceName: NettyHttpClientOperations
  * @Description: netty-http客户端能力
  * @Author: Wqy
  * @Date: 2025-09-24 15:15
  * @Version: 1.0
  **/
-public interface NettyHttpClientAbility {
+public interface NettyHttpClientOperations {
 
     /**
      * 链接
@@ -46,7 +46,6 @@ public interface NettyHttpClientAbility {
      * @param data
      * @param ipPortAddress
      * @param headerFunc
-     * @param <T>
      */
     void sendGetRequest(String path, Map<String, ?> data, IpPortAddress ipPortAddress, Function<HttpHeaders, Boolean> headerFunc);
 

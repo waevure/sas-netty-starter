@@ -5,7 +5,7 @@ import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.cache.Variable;
 import com.sas.sasnettystarter.netty.exception.NettyLinkException;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
-import com.sas.sasnettystarter.netty.mods.ab.NettyTcpServerAbility;
+import com.sas.sasnettystarter.netty.mods.operation.NettyTcpServerOperations;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -24,7 +24,7 @@ import java.util.Objects;
  * @Version: 1.0
  **/
 @Slf4j
-public class NettyTcpServerMods extends NettyServerMods implements NettyTcpServerAbility {
+public class NettyTcpServerMods extends NettyServerMods implements NettyTcpServerOperations {
     /**
      * @param nettyType   类型
      * @param bootstrap   netty引导类

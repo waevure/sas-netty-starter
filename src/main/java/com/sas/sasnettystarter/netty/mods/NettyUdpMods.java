@@ -1,27 +1,14 @@
 package com.sas.sasnettystarter.netty.mods;
 
-import com.sas.sasnettystarter.netty.IpPortAddress;
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
-import com.sas.sasnettystarter.netty.cache.Variable;
-import com.sas.sasnettystarter.netty.exception.NettyLinkException;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
-import com.sas.sasnettystarter.netty.mods.ab.NettyUdpAbility;
-import io.netty.bootstrap.AbstractBootstrap;
+import com.sas.sasnettystarter.netty.mods.operation.NettyUdpOperations;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
-import io.netty.channel.socket.DatagramPacket;
-import io.netty.util.CharsetUtil;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * @ClassName: NettyUdpMods
@@ -31,7 +18,7 @@ import java.util.function.Function;
  * @Version: 1.0
  **/
 @Slf4j
-public class NettyUdpMods extends NettyServerMods implements NettyUdpAbility {
+public class NettyUdpMods extends NettyServerMods implements NettyUdpOperations {
 
     public NettyUdpMods(ProjectAbstract pe, NettyType nettyType, Bootstrap bootstrap, EventLoopGroup workerGroup) {
         super(pe, nettyType);

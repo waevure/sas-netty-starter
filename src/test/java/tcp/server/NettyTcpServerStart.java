@@ -5,7 +5,7 @@ import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
 import com.sas.sasnettystarter.netty.log.LogMerge;
-import com.sas.sasnettystarter.netty.mods.ab.NettyTcpServerAbility;
+import com.sas.sasnettystarter.netty.mods.operation.NettyTcpServerOperations;
 import com.sas.sasnettystarter.netty.unpack.Unpacking;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
@@ -83,7 +83,8 @@ public class NettyTcpServerStart {
         // 每隔 3 秒执行一次任务，延迟 1 秒启动
         scheduler.scheduleAtFixedRate(() -> {
             System.out.println(Thread.currentThread().getName() + " 定时任务执行: " + System.currentTimeMillis());
-            NettyTcpServerAbility ability = NettyTcpServerGuide.tcpServer(pa);
+            // 获取tcp服务端能力
+            NettyTcpServerOperations ability = NettyTcpServerGuide.tcpServerOperations(pa);
             // 下发指令
             for (String key : ability.registerClientChannel().keySet()) {
                 ability.distributeInstruct(key, new NettyWriteBo());

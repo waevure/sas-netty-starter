@@ -1,18 +1,14 @@
 package nonetworkchannel;
 
-import com.sas.sasnettystarter.netty.IpPortAddress;
 import com.sas.sasnettystarter.netty.NettyLink;
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
 import com.sas.sasnettystarter.netty.log.LogMerge;
-import com.sas.sasnettystarter.netty.mods.ab.NettyTcpClientAbility;
-import com.sas.sasnettystarter.netty.unpack.Unpacking;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.logging.LogLevel;
 import lombok.extern.slf4j.Slf4j;
-import tcp.server.NettyTcpServerGuide;
 
 import java.util.concurrent.*;
 
@@ -74,7 +70,7 @@ public class NettyNoNetworkStart {
             serverStart.startNoNetworkChannel(pe);
             Thread.sleep(1000);
             // 连接server
-            NettyNoNetworkGuide.noNetworkChannel(pe).distributeInstruct(new  NettyWriteBo("127.0.0.1",6677,"wwwwhwh哈哈哈哈哈"));
+            NettyNoNetworkGuide.noNetworkChannelOperations(pe).distributeInstruct(new  NettyWriteBo("127.0.0.1",6677,"wwwwhwh哈哈哈哈哈"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
