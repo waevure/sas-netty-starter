@@ -6,11 +6,12 @@ import java.util.Objects;
  * 项目
  * 需要子类继承
  * 子类请勿加@Data注解
+ *
  * @author WQY
  * @version 1.0
  * @date 2024/1/18 13:34
  */
-public abstract class ProjectAbstract implements ProjectInterface{
+public abstract class ProjectAbstract implements ProjectInterface {
 
     public String projectName;
 
@@ -51,5 +52,9 @@ public abstract class ProjectAbstract implements ProjectInterface{
                 "projectName='" + projectName + '\'' +
                 ", projectCode='" + projectCode + '\'' +
                 '}';
+    }
+
+    public String toStr() {
+        return String.format("[%s:%s]", projectCode, projectName);
     }
 }

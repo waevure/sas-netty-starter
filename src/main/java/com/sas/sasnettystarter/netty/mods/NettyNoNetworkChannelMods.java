@@ -1,6 +1,8 @@
 package com.sas.sasnettystarter.netty.mods;
 
 import com.sas.sasnettystarter.netty.NettyType;
+import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
+import com.sas.sasnettystarter.netty.mods.ab.NettyNoNetworkAbility;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
 import lombok.Data;
@@ -15,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
  **/
 @Data
 @Slf4j
-public class NettyNoNetworkChannelMods extends NettyMods {
+public class NettyNoNetworkChannelMods extends NettyServerMods implements NettyNoNetworkAbility {
 
     private EmbeddedChannel channel;
 
@@ -24,22 +26,18 @@ public class NettyNoNetworkChannelMods extends NettyMods {
         this.nettyType = type;
     }
 
-    /**
-     * 写入通道
-     * @param bytes
-     * @return
-     */
-    public Boolean writeInbound(byte[] bytes) {
-        return channel.writeInbound(Unpooled.copiedBuffer(bytes));
+    @Override
+    public void distributeInstruct(NettyWriteBo writeData) {
+        this.channel.writeInbound(writeData);
     }
 
     @Override
     public boolean destroyServer() {
-        log.info("Netty无网络channel开始销毁:{}",this);
+        log.info("Netty无网络channel开始销毁:{}", this);
         this.channel.close();
         // 销毁variable
-        this.variable.destroy();
-        log.info("Netty无网络channel销毁完成:{}",this);
+        this.variable.destroy(this.getPe());
+        log.info("Netty无网络channel销毁完成:{}", this);
         return true;
     }
 }

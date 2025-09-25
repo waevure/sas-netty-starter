@@ -1,5 +1,7 @@
 package com.sas.sasnettystarter.netty.cache;
 
+import com.sas.sasnettystarter.netty.IpPortAddress;
+import com.sas.sasnettystarter.netty.ProjectAbstract;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 
@@ -9,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @Description 对接平台缓存
+ * @Description
  * @Author: wqy
  * @Date: 2019/9/18 14:31
  */
@@ -60,6 +62,7 @@ public class Variable {
 
     /**
      * 获取通道列表
+     *
      * @return
      */
     public List<ChannelHandlerContext> channelActiveList() {
@@ -68,9 +71,18 @@ public class Variable {
 
     /**
      * 销毁
+     *
      * @return
      */
-    public boolean destroy(){
+    public boolean destroy(ProjectAbstract pe) {
+        // 关闭通道
+        for (ChannelHandlerContext ctx : this.MAP_CHANNEL.values()) {
+            if (ctx.channel().isOpen()) {
+                ctx.close().syncUninterruptibly();
+                log.info("{}[{}]销毁-通道关闭", pe.toStr(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort());
+            }
+        }
+        // 清理map
         this.MAP_CHANNEL.clear();
         return true;
     }

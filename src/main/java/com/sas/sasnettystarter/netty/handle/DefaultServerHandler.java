@@ -1,5 +1,6 @@
 package com.sas.sasnettystarter.netty.handle;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,7 @@ public class DefaultServerHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        log.info("Welcome to connect:{}", ctx.toString());
+        log.info("欢迎连接:{}", ctx.toString());
     }
 
     /**
@@ -73,7 +74,13 @@ public class DefaultServerHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-
+        if (msg instanceof ByteBuf) {
+            ByteBuf byteBuf = (ByteBuf) msg;
+            byte[] bytes = new byte[byteBuf.readableBytes()];
+            byteBuf.readBytes(bytes);
+            String data = new String(bytes); // 这里只是演示
+            System.out.println("收到原始数据: " + data);
+        }
 
     }
 

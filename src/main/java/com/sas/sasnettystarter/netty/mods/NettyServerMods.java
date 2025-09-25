@@ -1,9 +1,11 @@
 package com.sas.sasnettystarter.netty.mods;
 
 import com.sas.sasnettystarter.netty.NettyType;
-import com.sas.sasnettystarter.netty.cache.Variable;
+import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.exception.NettyLinkException;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
+import io.netty.bootstrap.AbstractBootstrap;
+import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -12,12 +14,11 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 /**
- * @ClassName: NettyStartClientMods
+ * @ClassName: NettyServerMods
  * @Description: 服务端
  * @Author: Wqy
  * @Date: 2024-05-31 15:17
@@ -27,129 +28,95 @@ import java.util.Objects;
 @Slf4j
 public class NettyServerMods extends NettyMods {
 
-    private ServerBootstrap bootstrap;
-
-    private EventLoopGroup bossGroup;
-
-    private EventLoopGroup workerGroup;
-
-    // 外部使用的通道缓存，一般key为设备唯一编码。其实就是存一些执行力注册的设备
-    private Map<String, ChannelHandlerContext> keyMap = new HashMap<>();
-
-    // 服务通道future
-    private ChannelFuture channelFuture;
-
-    public NettyServerMods(ServerBootstrap bootstrap, EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
-        this.nettyType = NettyType.S;
-        this.bootstrap = bootstrap;
-        this.bossGroup = bossGroup;
-        this.workerGroup = workerGroup;
-        //初始化缓存信息
-        this.variable = new Variable();
-    }
+    /**
+     * netty引导类
+     * 用途：客户端 或 UDP 场景
+     * channel层级：只有一个 Channel（自己就是客户端的连接/UDP 通道）
+     */
+    public Bootstrap bootstrap;
 
     /**
-     * 等待退出
+     * netty引导类
+     * 用途：服务端（TCP监听）
+     * channel层级：有 两级 Channel：
+     * ① parent channel → NioServerSocketChannel（负责监听端口，接收新连接）
+     * ② child channel → NioSocketChannel（每个客户端连接对应一个）
      */
-    @Override
-    public void awaitSync(Integer port) {
-        try {
-            log.info("准备启动中:{}", port);
-            ChannelFuture f = this.bootstrap.bind(port).sync();
-            log.info("启动完成:{}", port);
-            this.channelFuture = f;
-            // 进行回调
-            if (Objects.nonNull(this.startSuccessCallback)){
-                this.startSuccessCallback.apply(f.channel());
-            }
-            //使用f.channel().closeFuture().sync()方法进行阻塞,等待服务端链路关闭之后main函数才退出。
-            f.channel().closeFuture().sync();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            /**优雅退出，释放NIO线程组*/
-            this.getBossGroup().shutdownGracefully();
-            this.getWorkerGroup().shutdownGracefully();
-        }
-    }
+    public ServerBootstrap serverBootstrap;
 
     /**
-     * 通道是否活跃
-     *
-     * @return
+     * boss组
      */
-    public boolean serverChannelActive() {
-        return this.channelFuture.channel().isActive();
-    }
+    public EventLoopGroup bossGroup;
 
     /**
-     * 服务本地地址
-     *
-     * @return
+     * worker组
      */
-    public String serverLocalAddress() {
-        // 判断存到缓存是否有值，有值的话从通道缓存取
-        List<ChannelHandlerContext> ctxList = this.variable().channelActiveList();
-        if (ctxList.size() > 0) {
-            return ctxList.get(0).channel().localAddress().toString();
-        }
-        return this.channelFuture.channel().localAddress().toString();
-    }
+    public EventLoopGroup workerGroup;
 
     /**
-     * 添加ctx
-     *
-     * @param key
-     * @param ctx
+     * 外部使用的通道缓存，一般key为设备唯一编码。其实就是存一些执行力注册的设备
      */
-    public void putCtx(String key, ChannelHandlerContext ctx) {
-        this.keyMap.put(key, ctx);
-    }
+    public Map<String, ChannelHandlerContext> keyMap = new HashMap<>();
 
     /**
-     * 获取
-     * @param key
-     * @return
+     * 服务通道构建结果
      */
-    public ChannelHandlerContext getCtx(String key) {
-        return this.keyMap.get(key);
-    }
+    public ChannelFuture channelFuture;
 
     /**
-     * 下发指令
-     * @param key
-     * @param writeData
+     * 所有客户端连接服务端的结果
      */
-    public void distributeInstruct(String key, NettyWriteBo writeData) {
-        // 获取通道
-        ChannelHandlerContext ctx = this.keyMap.get(key);
-        if (Objects.isNull(ctx)) {
-            throw new NettyLinkException("链路未注册:" + key);
-        }
-        if (!ctx.channel().isActive()) {
-            throw new NettyLinkException("链路未激活:" + key);
-        }
-        ctx.channel().writeAndFlush(writeData);
+    public Map<String, ChannelFuture> channelFutures = new HashMap<>();
+
+    public NettyServerMods() {
     }
 
-    /**
-     * 全部注册通道
-     *
-     * @return
-     */
-    public Map<String, ChannelHandlerContext> registerClientChannel() {
-        return this.keyMap;
+    public NettyServerMods(ProjectAbstract pe, NettyType nettyType) {
+        super(pe, nettyType);
     }
 
     @Override
     public boolean destroyServer() {
-        log.info("Netty服务端开始销毁:{}",this);
-        this.channelFuture.channel().close();
-        this.bossGroup.shutdownGracefully();
-        this.workerGroup.shutdownGracefully();
-        // 销毁variable
-        this.variable.destroy();
-        log.info("Netty服务端销毁完成:{}",this);
         return true;
+    }
+
+    @Override
+    public void printNettyServerBootstrapGroupStatus() {
+        log.info("===== {}-ServerBootstrap服务销毁状态检查 =====", this.getPe().toStr());
+        // 通道状态
+        if (channelFuture != null && channelFuture.channel() != null) {
+            log.info("{}-通道是否打开: {}", this.pe.toStr(), channelFuture.channel().isOpen() ? "是" : "否");
+            log.info("{}-通道是否激活: {}", this.pe.toStr(), channelFuture.channel().isActive() ? "是" : "否");
+        } else {
+            log.info("{}-通道: 未初始化");
+        }
+        this.printNettyBootstrapGroupStatusCommon();
+        // WorkerGroup 状态
+        if (workerGroup != null) {
+            log.info("{}-WorkerGroup 是否正在关闭: {}", this.pe.toStr(), workerGroup.isShuttingDown() ? "是" : "否");
+            log.info("{}-WorkerGroup 是否已终止: {}", this.pe.toStr(), workerGroup.isTerminated() ? "是" : "否");
+        } else {
+            log.info("{}-WorkerGroup: 未初始化", this.pe.toStr());
+        }
+    }
+
+    @Override
+    public void printNettyBootstrapGroupStatus() {
+        log.info("===== {}-Bootstrap销毁状态检查 =====", this.getPe().toStr());
+        this.printNettyBootstrapGroupStatusCommon();
+    }
+
+    /**
+     * 打印Boostrap状态
+     */
+    private void printNettyBootstrapGroupStatusCommon() {
+        // BossGroup 状态
+        if (bossGroup != null) {
+            log.info("{}-BossGroup 是否正在关闭: {}", this.pe.toStr(), bossGroup.isShuttingDown() ? "是" : "否");
+            log.info("{}-BossGroup 是否已终止: {}", this.pe.toStr(), bossGroup.isTerminated() ? "是" : "否");
+        } else {
+            log.info("{}-BossGroup: 未初始化", this.pe.toStr());
+        }
     }
 }

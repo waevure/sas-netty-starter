@@ -25,7 +25,7 @@ public class IpPortAddress {
     private Integer port;
 
     public String ipPort() {
-        return this.getIp() + ":" + this.getPort();
+        return String.format("%s:%d", this.getIp(), this.getPort());
     }
 
     public Integer getPort() {
@@ -55,7 +55,7 @@ public class IpPortAddress {
         if (Objects.nonNull(socketAddress)) {
             // 是否为无网络的channel
             if (socketAddress.toString().equals("embedded")) {
-                return new IpPortAddress(socketAddress.toString(),null);
+                return new IpPortAddress(socketAddress.toString(), null);
             }
             InetSocketAddress remoteAddr = (InetSocketAddress) socketAddress;
             //返回
@@ -76,7 +76,7 @@ public class IpPortAddress {
         //长度
         if (msg.length() > 6) {
             //去除所有空格
-            msg = msg.replace(" ","");
+            msg = msg.replace(" ", "");
             String address = msg.substring(4, 6);
             return address;
         }

@@ -11,11 +11,15 @@ package com.sas.sasnettystarter.netty;
 public enum NettyType {
 
     // 客户端,TCP长连接
-    C,
+    C_TCP,
+    // 服务端，TCP长连接
+    S_TCP,
     // 客户端，HTTP
     C_HTTP,
-    // 服务端，TCP长连接
-    S,
+    // 服务端，http
+    S_HTTP,
+    // UDP
+    UDP,
     // 无网络的责任链
     NO_NETWORK_CHANNEL;
 }

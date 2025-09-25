@@ -2,8 +2,8 @@ package com.sas.sasnettystarter.netty;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.sas.sasnettystarter.netty.handle.ChannelStatusHandler;
-import com.sas.sasnettystarter.netty.handle.DefaultServerHandler;
+import com.sas.sasnettystarter.netty.exception.NettyServerException;
+import com.sas.sasnettystarter.netty.handle.*;
 import com.sas.sasnettystarter.netty.log.LogMerge;
 import com.sas.sasnettystarter.netty.log.LoggingHandler;
 import com.sas.sasnettystarter.netty.mods.*;
@@ -14,6 +14,7 @@ import io.netty.channel.*;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 /**
@@ -33,10 +36,41 @@ import java.util.function.Function;
  */
 @Slf4j
 public class NettySupport {
+
+    /**
+     * 项目信息
+     */
+    private ProjectAbstract pe;
+    /**
+     * netty类型
+     */
+    private NettyType nettyType;
+    /**
+     * 构建该服务的线程池
+     */
+    private ThreadPoolExecutor executor;
+    /**
+     * netty构建信息
+     */
+    private NettyLink nettyLink;
+
     /**
      * netty模块
      */
     private NettyMods mods;
+
+    public NettySupport(ProjectAbstract pe, NettyType nettyType, NettyLink nettyLink) {
+        this.pe = pe;
+        this.nettyType = nettyType;
+        this.nettyLink = nettyLink;
+    }
+
+    public NettySupport(ProjectAbstract pe, NettyType nettyType, ThreadPoolExecutor executor, NettyLink nettyLink) {
+        this.pe = pe;
+        this.nettyType = nettyType;
+        this.executor = executor;
+        this.nettyLink = nettyLink;
+    }
 
     /**
      * 初始化NettyStartMods
@@ -66,14 +100,124 @@ public class NettySupport {
         return new Builder();
     }
 
+    public ThreadPoolExecutor getExecutor() {
+        return executor;
+    }
+
+    public NettyLink getNettyLink() {
+        return nettyLink;
+    }
+
+    public ProjectAbstract getPe() {
+        return pe;
+    }
+
+    public NettyType getNettyType() {
+        return nettyType;
+    }
+
+    public NettyMods getMods() {
+        return mods;
+    }
 
     /**
-     * netty能力模块
+     * 构建mods
      *
      * @return
      */
-    public NettyMods nettyMods() {
-        return mods;
+    public NettySupport buildMods() throws Exception {
+        //获取构建器
+        NettySupport.Builder builder = this.builder();
+        // 为空则添加默认的
+        if (this.getNettyLink().getBootstrapOptions().isEmpty()) {
+            //添加option
+            builder.addOption(ChannelOption.TCP_NODELAY, true);
+            builder.addOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000 * 5);
+        } else {
+            for (ChannelOption option : this.getNettyLink().getBootstrapOptions().keySet()) {
+                builder.addOption(option, this.getNettyLink().getBootstrapOptions().get(option));
+            }
+        }
+        //添加日志
+        builder.addLogMerge(this.getNettyLink().getLogMerge());
+        //添加处理器
+        builder.addStickyPackageUnpacking(this.getNettyLink().getDecoder());
+
+        //对默认处理器进行配置
+        if (this.getNettyLink().getIsOpenDefault()) {
+            if (Objects.nonNull(this.getNettyLink().getDefaultFunctionRead())) {
+                builder.openDefaultChannelStatus(this.getNettyLink().getDefaultFunctionRead());
+            }
+        }
+
+        // 添加Pipeline前的处理器
+        if (Objects.nonNull(this.getNettyLink().getBeforePipelines()) && !this.getNettyLink().getBeforePipelines().isEmpty()) {
+            for (Function<Channel, Boolean> function : this.getNettyLink().getBeforePipelines()) {
+                builder.addBeforePipeline(function);
+            }
+        }
+        // 添加指令分发器，状态处理器
+        for (Class<? extends LogicHandler> logicHandler : this.getNettyLink().getLogicHandlers()) {
+            builder.addPipeline(logicHandler);
+        }
+        // 添加读指令
+        for (Class<? extends ReadHandler> readHandler : this.getNettyLink().getReadHandlers()) {
+            builder.addPipeline(readHandler);
+        }
+        // 添加写指令
+        for (Class<? extends PacketEncoder> writeHandler : this.getNettyLink().getWriteHandlers()) {
+            builder.addPipeline(writeHandler);
+        }
+        // 添加启动成功回调
+        if (Objects.nonNull(this.getNettyLink().getStartSuccessCallback())) {
+            // 添加成功回调
+            builder.addStartSuccessCallback(this.getNettyLink().getStartSuccessCallback());
+        }
+
+        // 启动netty
+        NettyMods mods;
+        if (NettyType.C_TCP == this.getNettyType()) {
+            mods = builder.startTcpClient(this.getPe());
+        } else if (NettyType.S_TCP == this.getNettyType()) {
+            mods = builder.startTcpServer(this.getPe());
+        } else if (NettyType.C_HTTP == this.getNettyType()) {
+            mods = builder.startHttpClient(this.getPe());
+        } else if (NettyType.S_HTTP == this.getNettyType()) {
+            mods = builder.startHttpServer(this.getPe());
+        } else if (NettyType.UDP == this.getNettyType()) {
+            mods = builder.startUdpServer(this.getPe());
+        } else if (NettyType.NO_NETWORK_CHANNEL == this.getNettyType()) {
+            mods = builder.buildNoNetworkChannel(this.getPe());
+        } else {
+            throw new NettyServerException("未匹配到服务类型");
+        }
+        // 添加mods
+        this.mods = mods;
+        return this;
+    }
+
+    /**
+     * 销毁
+     */
+    public void destroy() throws Exception {
+        // 销毁mod
+        this.mods.destroyServer();
+        // 销毁线程池
+        if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+            executor.shutdownNow(); // 强制中断
+        }
+        // 检查线程池
+        this.printExecutorStatus();
+    }
+
+    public void printExecutorStatus() {
+        // 外部线程池状态
+        if (executor != null) {
+            log.info("线程池是否已关闭: {}", executor.isShutdown() ? "是" : "否");
+            log.info("线程池是否已终止: {}", executor.isTerminated() ? "是" : "否");
+        } else {
+            log.info("线程池: 未初始化");
+        }
     }
 
     class Builder {
@@ -199,7 +343,7 @@ public class NettySupport {
          * @param pe 协议类型
          * @param b  引导
          */
-        private void mergeParamClient(ProjectAbstract pe, Bootstrap b, NettyType nettyType) {
+        private void mergeParamBootstrap(ProjectAbstract pe, Bootstrap b, NettyType nettyType) {
             //添加netty-option
             for (ChannelOption option : this.options.keySet()) {
                 b.option(option, this.options.get(option));
@@ -212,7 +356,7 @@ public class NettySupport {
          *
          * @param b 引导
          */
-        private void mergeParamServer(ServerBootstrap b, ProjectAbstract pe) {
+        private void mergeParamServerBootstrap(ServerBootstrap b, ProjectAbstract pe) {
             //添加netty-option
             for (ChannelOption option : this.options.keySet()) {
                 b.childOption(option, this.options.get(option));
@@ -222,11 +366,25 @@ public class NettySupport {
         }
 
         /**
+         * 合并参数-server
+         *
+         * @param b 引导
+         */
+        private void mergeParamUdpServer(Bootstrap b, ProjectAbstract pe) {
+            //添加netty-option
+            for (ChannelOption option : this.options.keySet()) {
+                b.option(option, this.options.get(option));
+            }
+            b.handler(new DatagramChannelInitializer(pe));
+        }
+
+
+        /**
          * 阻塞方法-启动netty客户端
          *
          * @return
          */
-        public NettyMods startClient(ProjectAbstract pe) {
+        public NettyMods startTcpClient(ProjectAbstract pe) {
             /**配置客户端 NIO 线程组/池*/
             EventLoopGroup group = new NioEventLoopGroup();
             /**Bootstrap 与 ServerBootstrap 都继承(extends)于 AbstractBootstrap
@@ -236,30 +394,40 @@ public class NettySupport {
             Bootstrap b = new Bootstrap();
             b.group(group).channel(NioSocketChannel.class);
             // 合并参数
-            mergeParamClient(pe, b, NettyType.C);
+            mergeParamBootstrap(pe, b, NettyType.C_TCP);
             log.info("client启动完成，构建NettyStartMods:{}", pe.toString());
-            return new NettyClientMods(b, group, this.startSuccessCallback);
+            return new NettyTcpClientMods(pe, NettyType.C_TCP, b, group, this.startSuccessCallback);
         }
 
         /**
-         * 阻塞方法-启动http-netty客户端
+         * 启动http-netty客户端
          *
          * @return
          */
         public NettyMods startHttpClient(ProjectAbstract pe) {
-            /**配置客户端 NIO 线程组/池*/
             EventLoopGroup group = new NioEventLoopGroup();
-            /**Bootstrap 与 ServerBootstrap 都继承(extends)于 AbstractBootstrap
-             * 创建客户端辅助启动类,并对其配置,与服务器稍微不同，这里的 Channel 设置为 NioSocketChannel
-             * 然后为其添加 Handler，这里直接使用匿名内部类，实现 initChannel 方法
-             * 作用是当创建 NioSocketChannel 成功后，在进行初始化时,将它的ChannelHandler设置到ChannelPipeline中，用于处理网络I/O事件*/
             Bootstrap b = new Bootstrap();
             b.group(group).channel(NioSocketChannel.class);
             // 合并参数
-            mergeParamClient(pe, b, NettyType.C);
-            log.info("http-client启动完成，构建NettyHttpClientMods:{}", pe.toString());
-            NettyHttpClientMods clientMods = new NettyHttpClientMods(b, group, this.startSuccessCallback);
-            return clientMods;
+            mergeParamBootstrap(pe, b, NettyType.C_HTTP);
+            return new NettyHttpClientMods(pe, NettyType.C_HTTP, b, group, this.startSuccessCallback);
+        }
+
+        /**
+         * 启动http-netty客户端
+         *
+         * @return
+         */
+        public NettyMods startHttpServer(ProjectAbstract pe) {
+            // boss 负责接收连接，worker 负责处理 IO
+            EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+            EventLoopGroup workerGroup = new NioEventLoopGroup();
+            // 创建引导类
+            ServerBootstrap b = new ServerBootstrap();
+            b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
+            // 合并参数
+            this.mergeParamServerBootstrap(b, pe);
+            return new NettyHttpServerMods(pe, NettyType.S_HTTP, b, bossGroup, workerGroup);
         }
 
         /**
@@ -267,17 +435,33 @@ public class NettySupport {
          *
          * @return
          */
-        public NettyMods startServer(ProjectAbstract pe) {
-            // 构建boos-worker
+        public NettyMods startTcpServer(ProjectAbstract pe) {
+            // 构建boss-worker
             EventLoopGroup bossGroup = new NioEventLoopGroup();
             EventLoopGroup workerGroup = new NioEventLoopGroup();
             // 创建引导类
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
+            // 合并参数
+            this.mergeParamServerBootstrap(b, pe);
+            return new NettyTcpServerMods(pe, NettyType.S_TCP, b, bossGroup, workerGroup);
+        }
 
-            this.mergeParamServer(b, pe);
-
-            return new NettyServerMods(b, bossGroup, workerGroup);
+        /**
+         * 启动udp-netty服务
+         *
+         * @return
+         */
+        public NettyMods startUdpServer(ProjectAbstract pe) {
+            // 构建boos-worker
+            EventLoopGroup group = new NioEventLoopGroup();
+            // 创建引导类
+            Bootstrap b = new Bootstrap();
+            b.group(group).channel(NioDatagramChannel.class);
+            // 服务参数处理
+            this.mergeParamUdpServer(b, pe);
+            // 构建udp模块
+            return new NettyUdpMods(pe, NettyType.UDP, b, group);
         }
 
         /**
@@ -288,12 +472,10 @@ public class NettySupport {
         public NettyMods buildNoNetworkChannel(ProjectAbstract pe) throws Exception {
             // 创建一个嵌入式 Channel
             EmbeddedChannel channel = new EmbeddedChannel();
-            // 设置mods
-            NettySupport.this.initStartMods(new NettyNoNetworkChannelMods(channel, NettyType.NO_NETWORK_CHANNEL));
             // 初始化channel责任链
             this.initChannelSupport(pe, channel);
             // 返回mods
-            return NettySupport.this.nettyMods();
+            return new NettyNoNetworkChannelMods(channel, NettyType.NO_NETWORK_CHANNEL);
         }
 
         /**
@@ -306,7 +488,7 @@ public class NettySupport {
         private void initChannelSupport(ProjectAbstract pe, Channel channel) throws Exception {
             //日志添加到首位
             if (ObjectUtil.isNotNull(logMerge)) {
-                LoggingHandler loggingHandler = new LoggingHandler(logMerge.getLogLevel());
+                LoggingHandler loggingHandler = new LoggingHandler(pe, logMerge.getLogLevel());
                 // 添加回调处理器
                 if (Objects.nonNull(logMerge.getLoggingCallBackFunc())) {
                     loggingHandler.addStrLogCall(logMerge.getLoggingCallBackFunc());
@@ -356,6 +538,23 @@ public class NettySupport {
 
             @Override
             protected void initChannel(SocketChannel channel) throws Exception {
+                // 初始化责任链
+                Builder.this.initChannelSupport(this.pe, channel);
+            }
+        }
+
+        /**
+         * udp通道初始化
+         */
+        private class DatagramChannelInitializer extends ChannelInitializer<NioDatagramChannel> {
+            private final ProjectAbstract pe;
+
+            public DatagramChannelInitializer(ProjectAbstract pe) {
+                this.pe = pe;
+            }
+
+            @Override
+            protected void initChannel(NioDatagramChannel channel) throws Exception {
                 // 初始化责任链
                 Builder.this.initChannelSupport(this.pe, channel);
             }

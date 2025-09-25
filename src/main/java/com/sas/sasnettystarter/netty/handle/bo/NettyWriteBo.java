@@ -14,6 +14,20 @@ public class NettyWriteBo extends NettyBo{
 
     public String msg;
 
+    public NettyWriteBo() {
+    }
+
+    public NettyWriteBo(String ip, Integer port) {
+        this.ip = ip;
+        this.port = port;
+    }
+
+    public NettyWriteBo(String ip, Integer port, String msg) {
+        this.ip = ip;
+        this.port = port;
+        this.msg = msg;
+    }
+
     /**
      * 获取ip:port
      * @return

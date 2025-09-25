@@ -47,7 +47,7 @@ public class NettyLink {
     private LogMerge logMerge = null;
 
     /**
-     * 如果isOpenDefault true该参数才生效
+     * 如果isOpenDefault true该参数才可能生效，该参数可以为空
      */
     private TiFunction<ChannelHandlerContext, Object, ProjectAbstract, Object> defaultFunctionRead;
 
@@ -127,6 +127,16 @@ public class NettyLink {
     public <P,R> NettyLink openDefaultChannelStatus(TiFunction<ChannelHandlerContext, P, ProjectAbstract, R> function) {
         this.isOpenDefault = true;
         this.defaultFunctionRead = (TiFunction<ChannelHandlerContext, Object, ProjectAbstract, Object>) function;
+        return this;
+    }
+
+    /**
+     * 开启默认通道状态管理
+     *
+     * @return
+     */
+    public <P,R> NettyLink openDefaultChannelStatus() {
+        this.isOpenDefault = true;
         return this;
     }
 

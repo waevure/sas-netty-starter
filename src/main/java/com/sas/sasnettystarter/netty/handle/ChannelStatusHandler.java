@@ -4,8 +4,13 @@ import com.sas.sasnettystarter.netty.IpPortAddress;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.TiFunction;
 import com.sas.sasnettystarter.netty.cache.Variable;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.ReferenceCountUtil;
+import io.netty.util.ReferenceCounted;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Objects;
 
 /**
  * 默认通道状态管理，放在解码之后
@@ -89,7 +94,6 @@ public class ChannelStatusHandler extends LogicHandler {
         //释放资源
         this.variable.removeCtx(ctx);
         log.warn("{}-连接断开:{}", projectAbstract.getProjectCode(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort());
-        ctx.close();
     }
 
     /**
@@ -101,9 +105,21 @@ public class ChannelStatusHandler extends LogicHandler {
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        // 所有设备状态
-        this.function.apply(ctx, msg, this.projectAbstract);
-
+        boolean release = true;
+        try {
+            if (Objects.nonNull(this.function)) {
+                // 所有设备状态
+                this.function.apply(ctx, msg, this.projectAbstract);
+            } else {
+                release = false;
+                super.channelRead(ctx, msg);
+            }
+        } finally {
+            if (release) {
+                // 手动释放引用计数对象，防止内存泄漏
+                ReferenceCountUtil.release(msg);
+            }
+        }
     }
 
     /**
@@ -114,7 +130,7 @@ public class ChannelStatusHandler extends LogicHandler {
      */
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        log.info("{}-通道读取完成:{}", projectAbstract.getProjectCode(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort());
+        log.debug("{}-通道读取完成:{}", projectAbstract.getProjectCode(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort());
     }
 
     /**

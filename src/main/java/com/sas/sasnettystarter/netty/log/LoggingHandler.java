@@ -15,6 +15,7 @@
  */
 package com.sas.sasnettystarter.netty.log;
 
+import com.sas.sasnettystarter.netty.ProjectAbstract;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufHolder;
 import io.netty.channel.*;
@@ -48,6 +49,8 @@ public class LoggingHandler extends ChannelDuplexHandler {
     private final LogLevel level;
     private final ByteBufFormat byteBufFormat;
 
+    // 项目信息
+    private ProjectAbstract pe;
     // 日志回调函数
     private LoggingCallBackFunc loggingCallBackFunc;
 
@@ -55,8 +58,8 @@ public class LoggingHandler extends ChannelDuplexHandler {
      * Creates a new instance whose logger name is the fully qualified class
      * name of the instance with hex dump enabled.
      */
-    public LoggingHandler() {
-        this(DEFAULT_LEVEL);
+    public LoggingHandler(ProjectAbstract pe) {
+        this(pe, DEFAULT_LEVEL);
     }
 
     /**
@@ -65,8 +68,8 @@ public class LoggingHandler extends ChannelDuplexHandler {
      *
      * @param format Format of ByteBuf dumping
      */
-    public LoggingHandler(ByteBufFormat format) {
-        this(DEFAULT_LEVEL, format);
+    public LoggingHandler(ProjectAbstract pe, ByteBufFormat format) {
+        this(pe, DEFAULT_LEVEL, format);
     }
 
     /**
@@ -75,8 +78,8 @@ public class LoggingHandler extends ChannelDuplexHandler {
      *
      * @param level the log level
      */
-    public LoggingHandler(LogLevel level) {
-        this(level, ByteBufFormat.HEX_DUMP);
+    public LoggingHandler(ProjectAbstract pe, LogLevel level) {
+        this(pe, level, ByteBufFormat.HEX_DUMP);
     }
 
     /**
@@ -86,7 +89,8 @@ public class LoggingHandler extends ChannelDuplexHandler {
      * @param level         the log level
      * @param byteBufFormat the ByteBuf format
      */
-    public LoggingHandler(LogLevel level, ByteBufFormat byteBufFormat) {
+    public LoggingHandler(ProjectAbstract pe, LogLevel level, ByteBufFormat byteBufFormat) {
+        this.pe = pe;
         this.level = ObjectUtil.checkNotNull(level, "level");
         this.byteBufFormat = ObjectUtil.checkNotNull(byteBufFormat, "byteBufFormat");
         logger = InternalLoggerFactory.getInstance(getClass());
@@ -212,7 +216,7 @@ public class LoggingHandler extends ChannelDuplexHandler {
             logger.log(internalLevel, logStr);
             // 进行回调
             if (Objects.nonNull(loggingCallBackFunc)) {
-                this.loggingCallBackFunc.strLogCall(ctx.channel().id(),"REGISTERED", logStr, logAddr(ctx));
+                this.loggingCallBackFunc.strLogCall(ctx.channel().id(), "REGISTERED", logStr, logAddr(ctx));
             }
         }
         ctx.fireChannelRegistered();
@@ -226,7 +230,7 @@ public class LoggingHandler extends ChannelDuplexHandler {
             logger.log(internalLevel, logStr);
             // 进行回调
             if (Objects.nonNull(loggingCallBackFunc)) {
-                this.loggingCallBackFunc.strLogCall(ctx.channel().id(),"UNREGISTERED", logStr, logAddr(ctx));
+                this.loggingCallBackFunc.strLogCall(ctx.channel().id(), "UNREGISTERED", logStr, logAddr(ctx));
             }
         }
         ctx.fireChannelUnregistered();
@@ -240,7 +244,7 @@ public class LoggingHandler extends ChannelDuplexHandler {
             logger.log(internalLevel, logStr);
             // 进行回调
             if (Objects.nonNull(loggingCallBackFunc)) {
-                this.loggingCallBackFunc.strLogCall(ctx.channel().id(),"UNREGISTERED", logStr, logAddr(ctx));
+                this.loggingCallBackFunc.strLogCall(ctx.channel().id(), "UNREGISTERED", logStr, logAddr(ctx));
             }
         }
         ctx.fireChannelActive();
@@ -262,7 +266,7 @@ public class LoggingHandler extends ChannelDuplexHandler {
             logger.log(internalLevel, logStr, cause);
             // 进行回调
             if (Objects.nonNull(loggingCallBackFunc)) {
-                this.loggingCallBackFunc.strLogCall(ctx.channel().id(),"EXCEPTION", logStr, logAddr(ctx));
+                this.loggingCallBackFunc.strLogCall(ctx.channel().id(), "EXCEPTION", logStr, logAddr(ctx));
             }
         }
         ctx.fireExceptionCaught(cause);
@@ -294,7 +298,7 @@ public class LoggingHandler extends ChannelDuplexHandler {
             logger.log(internalLevel, logStr);
             // 进行回调
             if (Objects.nonNull(loggingCallBackFunc)) {
-                this.loggingCallBackFunc.strLogCall(ctx.channel().id(),"CONNECT", logStr, logAddr(ctx));
+                this.loggingCallBackFunc.strLogCall(ctx.channel().id(), "CONNECT", logStr, logAddr(ctx));
             }
         }
         ctx.connect(remoteAddress, localAddress, promise);
@@ -316,7 +320,7 @@ public class LoggingHandler extends ChannelDuplexHandler {
             logger.log(internalLevel, logStr);
             // 进行回调
             if (Objects.nonNull(loggingCallBackFunc)) {
-                this.loggingCallBackFunc.strLogCall(ctx.channel().id(),"CLOSE", logStr, logAddr(ctx));
+                this.loggingCallBackFunc.strLogCall(ctx.channel().id(), "CLOSE", logStr, logAddr(ctx));
             }
         }
         ctx.close(promise);
@@ -346,7 +350,7 @@ public class LoggingHandler extends ChannelDuplexHandler {
             logger.log(internalLevel, logStr);
             // 进行回调
             if (Objects.nonNull(loggingCallBackFunc)) {
-                this.loggingCallBackFunc.strLogCall(ctx.channel().id(),"READ", logStr, logAddr(ctx));
+                this.loggingCallBackFunc.strLogCall(ctx.channel().id(), "READ", logStr, logAddr(ctx));
             }
         }
         ctx.fireChannelRead(msg);
@@ -360,7 +364,7 @@ public class LoggingHandler extends ChannelDuplexHandler {
             logger.log(internalLevel, logStr);
             // 进行回调
             if (Objects.nonNull(loggingCallBackFunc)) {
-                this.loggingCallBackFunc.strLogCall(ctx.channel().id(),"WRITE", logStr, logAddr(ctx));
+                this.loggingCallBackFunc.strLogCall(ctx.channel().id(), "WRITE", logStr, logAddr(ctx));
             }
         }
         ctx.write(msg, promise);
@@ -388,8 +392,11 @@ public class LoggingHandler extends ChannelDuplexHandler {
      * @param eventName the name of the event
      */
     protected String format(ChannelHandlerContext ctx, String eventName) {
+        // 获取项目信息
+        String peStr = this.pe.toStr();
         String chStr = ctx.channel().toString();
-        return new StringBuilder(chStr.length() + 1 + eventName.length())
+        return new StringBuilder(chStr.length() + 1 + eventName.length() + peStr.length())
+                .append(peStr)
                 .append(chStr)
                 .append(' ')
                 .append(eventName)
@@ -403,13 +410,16 @@ public class LoggingHandler extends ChannelDuplexHandler {
      * @param arg       the argument of the event
      */
     protected String format(ChannelHandlerContext ctx, String eventName, Object arg) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.pe.toStr());
         if (arg instanceof ByteBuf) {
-            return formatByteBuf(ctx, eventName, (ByteBuf) arg);
+            sb.append(formatByteBuf(ctx, eventName, (ByteBuf) arg));
         } else if (arg instanceof ByteBufHolder) {
-            return formatByteBufHolder(ctx, eventName, (ByteBufHolder) arg);
+            sb.append(formatByteBufHolder(ctx, eventName, (ByteBufHolder) arg));
         } else {
-            return formatSimple(ctx, eventName, arg);
+            sb.append(formatSimple(ctx, eventName, arg));
         }
+        return sb.toString();
     }
 
     /**
@@ -424,13 +434,14 @@ public class LoggingHandler extends ChannelDuplexHandler {
         if (secondArg == null) {
             return formatSimple(ctx, eventName, firstArg);
         }
-
+        // pe
+        String peStr = this.pe.toStr();
         String chStr = ctx.channel().toString();
         String arg1Str = String.valueOf(firstArg);
         String arg2Str = secondArg.toString();
         StringBuilder buf = new StringBuilder(
-                chStr.length() + 1 + eventName.length() + 2 + arg1Str.length() + 2 + arg2Str.length());
-        buf.append(chStr).append(' ').append(eventName).append(": ").append(arg1Str).append(", ").append(arg2Str);
+                peStr.length() + chStr.length() + 1 + eventName.length() + 2 + arg1Str.length() + 2 + arg2Str.length());
+        buf.append(peStr).append(chStr).append(' ').append(eventName).append(": ").append(arg1Str).append(", ").append(arg2Str);
         return buf.toString();
     }
 
