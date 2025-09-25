@@ -1,10 +1,7 @@
-package com.sas.sasnettystarter.netty.mods;
+package com.sas.sasnettystarter.netty.ops.core;
 
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
-import com.sas.sasnettystarter.netty.exception.NettyLinkException;
-import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
-import io.netty.bootstrap.AbstractBootstrap;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -15,10 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
- * @ClassName: NettyServerMods
+ * @ClassName: NettyServerBaseContext
  * @Description: 服务端
  * @Author: Wqy
  * @Date: 2024-05-31 15:17
@@ -26,7 +22,7 @@ import java.util.Objects;
  **/
 @Data
 @Slf4j
-public class NettyServerMods extends NettyMods {
+public class NettyServerBaseContext extends NettyProjectContext {
 
     /**
      * netty引导类
@@ -69,10 +65,10 @@ public class NettyServerMods extends NettyMods {
      */
     public Map<String, ChannelFuture> channelFutures = new HashMap<>();
 
-    public NettyServerMods() {
+    public NettyServerBaseContext() {
     }
 
-    public NettyServerMods(ProjectAbstract pe, NettyType nettyType) {
+    public NettyServerBaseContext(ProjectAbstract pe, NettyType nettyType) {
         super(pe, nettyType);
     }
 

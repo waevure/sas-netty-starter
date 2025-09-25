@@ -1,4 +1,4 @@
-package com.sas.sasnettystarter.netty.mods;
+package com.sas.sasnettystarter.netty.ops.http;
 
 import cn.hutool.http.HttpUtil;
 import com.sas.sasnettystarter.netty.IpPortAddress;
@@ -6,7 +6,7 @@ import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.constant.NettyConstant;
 import com.sas.sasnettystarter.netty.exception.NettyLinkException;
-import com.sas.sasnettystarter.netty.mods.operation.NettyHttpClientOperations;
+import com.sas.sasnettystarter.netty.ops.core.NettyServerBaseContext;
 import com.sas.sasnettystarter.netty.utils.GsonUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
@@ -20,22 +20,22 @@ import java.util.Objects;
 import java.util.function.Function;
 
 /**
- * @ClassName: NettyHttpClientMods
+ * @ClassName: NettyHttpClient
  * @Description: netty-http-client功能
  * @Author: Wqy
  * @Date: 2024-10-29 10:30
  * @Version: 1.0
  **/
 @Slf4j
-public class NettyHttpClientMods extends NettyServerMods implements NettyHttpClientOperations {
+public class NettyHttpClient extends NettyServerBaseContext implements NettyHttpClientOperations {
 
-    public NettyHttpClientMods(ProjectAbstract pe, NettyType nettyType, Bootstrap bootstrap, EventLoopGroup group) {
+    public NettyHttpClient(ProjectAbstract pe, NettyType nettyType, Bootstrap bootstrap, EventLoopGroup group) {
         super(pe, nettyType);
         this.bootstrap = bootstrap;
         this.bossGroup = group;
     }
 
-    public NettyHttpClientMods(ProjectAbstract pe, NettyType nettyType, Bootstrap bootstrap, EventLoopGroup group, Function<Channel, Boolean> startSuccessCallback) {
+    public NettyHttpClient(ProjectAbstract pe, NettyType nettyType, Bootstrap bootstrap, EventLoopGroup group, Function<Channel, Boolean> startSuccessCallback) {
         super(pe, nettyType);
         this.bootstrap = bootstrap;
         this.bossGroup = group;

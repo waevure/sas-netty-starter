@@ -1,4 +1,4 @@
-package com.sas.sasnettystarter.netty.mods.operation;
+package com.sas.sasnettystarter.netty.ops.http;
 
 import com.sas.sasnettystarter.netty.IpPortAddress;
 import io.netty.channel.ChannelFuture;

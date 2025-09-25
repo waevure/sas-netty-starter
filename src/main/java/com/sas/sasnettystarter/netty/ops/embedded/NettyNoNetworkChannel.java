@@ -1,14 +1,14 @@
-package com.sas.sasnettystarter.netty.mods;
+package com.sas.sasnettystarter.netty.ops.embedded;
 
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
-import com.sas.sasnettystarter.netty.mods.operation.NettyNoNetworkOperations;
+import com.sas.sasnettystarter.netty.ops.core.NettyServerBaseContext;
 import io.netty.channel.embedded.EmbeddedChannel;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * @ClassName: NettyNoNetworkChannelMods
+ * @ClassName: NettyNoNetworkChannel
  * @Description: 无网络channel
  * @Author: Wqy
  * @Date: 2024-11-26 15:17
@@ -16,11 +16,11 @@ import lombok.extern.slf4j.Slf4j;
  **/
 @Data
 @Slf4j
-public class NettyNoNetworkChannelMods extends NettyServerMods implements NettyNoNetworkOperations {
+public class NettyNoNetworkChannel extends NettyServerBaseContext implements NettyNoNetworkOperations {
 
     private EmbeddedChannel channel;
 
-    public NettyNoNetworkChannelMods(EmbeddedChannel channel, NettyType type) {
+    public NettyNoNetworkChannel(EmbeddedChannel channel, NettyType type) {
         this.channel = channel;
         this.nettyType = type;
     }

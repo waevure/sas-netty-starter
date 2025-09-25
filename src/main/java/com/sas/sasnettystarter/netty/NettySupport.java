@@ -6,7 +6,13 @@ import com.sas.sasnettystarter.netty.exception.NettyServerException;
 import com.sas.sasnettystarter.netty.handle.*;
 import com.sas.sasnettystarter.netty.log.LogMerge;
 import com.sas.sasnettystarter.netty.log.LoggingHandler;
-import com.sas.sasnettystarter.netty.mods.*;
+import com.sas.sasnettystarter.netty.ops.core.NettyProjectContext;
+import com.sas.sasnettystarter.netty.ops.embedded.NettyNoNetworkChannel;
+import com.sas.sasnettystarter.netty.ops.http.NettyHttpClient;
+import com.sas.sasnettystarter.netty.ops.http.NettyHttpServer;
+import com.sas.sasnettystarter.netty.ops.tcp.NettyTcpClient;
+import com.sas.sasnettystarter.netty.ops.tcp.NettyTcpServer;
+import com.sas.sasnettystarter.netty.ops.udp.NettyUdpServer;
 import com.sas.sasnettystarter.netty.unpack.Unpacking;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
@@ -57,11 +63,11 @@ public class NettySupport {
     /**
      * Netty模块
      * 对Netty应用能力的抽象
-     * NettyMods：定义项目环境等Netty基础信息
-     * NettyServerMods：定义Netty的环境信息系。
+     * NettyProjectContext：定义项目环境等Netty基础信息
+     * NettyServerBaseContext：定义Netty的环境信息系。
      *
      */
-    private NettyMods mods;
+    private NettyProjectContext mods;
 
     public NettySupport(ProjectAbstract pe, NettyType nettyType, NettyLink nettyLink) {
         this.pe = pe;
@@ -81,7 +87,7 @@ public class NettySupport {
      *
      * @param mods
      */
-    public NettySupport initStartMods(NettyMods mods) {
+    public NettySupport initStartMods(NettyProjectContext mods) {
         this.mods = mods;
         return this;
     }
@@ -120,7 +126,7 @@ public class NettySupport {
         return nettyType;
     }
 
-    public NettyMods getMods() {
+    public NettyProjectContext getMods() {
         return mods;
     }
 
@@ -179,7 +185,7 @@ public class NettySupport {
         }
 
         // 启动netty
-        NettyMods mods;
+        NettyProjectContext mods;
         if (NettyType.C_TCP == this.getNettyType()) {
             mods = builder.startTcpClient(this.getPe());
         } else if (NettyType.S_TCP == this.getNettyType()) {
@@ -388,7 +394,7 @@ public class NettySupport {
          *
          * @return
          */
-        public NettyMods startTcpClient(ProjectAbstract pe) {
+        public NettyProjectContext startTcpClient(ProjectAbstract pe) {
             /**配置客户端 NIO 线程组/池*/
             EventLoopGroup group = new NioEventLoopGroup();
             /**Bootstrap 与 ServerBootstrap 都继承(extends)于 AbstractBootstrap
@@ -400,7 +406,7 @@ public class NettySupport {
             // 合并参数
             mergeParamBootstrap(pe, b, NettyType.C_TCP);
             log.info("client启动完成，构建NettyStartMods:{}", pe.toString());
-            return new NettyTcpClientMods(pe, NettyType.C_TCP, b, group, this.startSuccessCallback);
+            return new NettyTcpClient(pe, NettyType.C_TCP, b, group, this.startSuccessCallback);
         }
 
         /**
@@ -408,13 +414,13 @@ public class NettySupport {
          *
          * @return
          */
-        public NettyMods startHttpClient(ProjectAbstract pe) {
+        public NettyProjectContext startHttpClient(ProjectAbstract pe) {
             EventLoopGroup group = new NioEventLoopGroup();
             Bootstrap b = new Bootstrap();
             b.group(group).channel(NioSocketChannel.class);
             // 合并参数
             mergeParamBootstrap(pe, b, NettyType.C_HTTP);
-            return new NettyHttpClientMods(pe, NettyType.C_HTTP, b, group, this.startSuccessCallback);
+            return new NettyHttpClient(pe, NettyType.C_HTTP, b, group, this.startSuccessCallback);
         }
 
         /**
@@ -422,7 +428,7 @@ public class NettySupport {
          *
          * @return
          */
-        public NettyMods startHttpServer(ProjectAbstract pe) {
+        public NettyProjectContext startHttpServer(ProjectAbstract pe) {
             // boss 负责接收连接，worker 负责处理 IO
             EventLoopGroup bossGroup = new NioEventLoopGroup(1);
             EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -431,7 +437,7 @@ public class NettySupport {
             b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
             // 合并参数
             this.mergeParamServerBootstrap(b, pe);
-            return new NettyHttpServerMods(pe, NettyType.S_HTTP, b, bossGroup, workerGroup);
+            return new NettyHttpServer(pe, NettyType.S_HTTP, b, bossGroup, workerGroup);
         }
 
         /**
@@ -439,7 +445,7 @@ public class NettySupport {
          *
          * @return
          */
-        public NettyMods startTcpServer(ProjectAbstract pe) {
+        public NettyProjectContext startTcpServer(ProjectAbstract pe) {
             // 构建boss-worker
             EventLoopGroup bossGroup = new NioEventLoopGroup();
             EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -448,7 +454,7 @@ public class NettySupport {
             b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class);
             // 合并参数
             this.mergeParamServerBootstrap(b, pe);
-            return new NettyTcpServerMods(pe, NettyType.S_TCP, b, bossGroup, workerGroup);
+            return new NettyTcpServer(pe, NettyType.S_TCP, b, bossGroup, workerGroup);
         }
 
         /**
@@ -456,7 +462,7 @@ public class NettySupport {
          *
          * @return
          */
-        public NettyMods startUdpServer(ProjectAbstract pe) {
+        public NettyProjectContext startUdpServer(ProjectAbstract pe) {
             // 构建boos-worker
             EventLoopGroup group = new NioEventLoopGroup();
             // 创建引导类
@@ -465,7 +471,7 @@ public class NettySupport {
             // 服务参数处理
             this.mergeParamUdpServer(b, pe);
             // 构建udp模块
-            return new NettyUdpMods(pe, NettyType.UDP, b, group);
+            return new NettyUdpServer(pe, NettyType.UDP, b, group);
         }
 
         /**
@@ -473,13 +479,13 @@ public class NettySupport {
          *
          * @return
          */
-        public NettyMods buildNoNetworkChannel(ProjectAbstract pe) throws Exception {
+        public NettyProjectContext buildNoNetworkChannel(ProjectAbstract pe) throws Exception {
             // 创建一个嵌入式 Channel
             EmbeddedChannel channel = new EmbeddedChannel();
             // 初始化channel责任链
             this.initChannelSupport(pe, channel);
             // 返回mods
-            return new NettyNoNetworkChannelMods(channel, NettyType.NO_NETWORK_CHANNEL);
+            return new NettyNoNetworkChannel(channel, NettyType.NO_NETWORK_CHANNEL);
         }
 
         /**

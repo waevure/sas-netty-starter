@@ -5,7 +5,7 @@ import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
 import com.sas.sasnettystarter.netty.log.LogMerge;
-import com.sas.sasnettystarter.netty.mods.operation.NettyTcpServerOperations;
+import com.sas.sasnettystarter.netty.ops.tcp.NettyTcpServerOperations;
 import com.sas.sasnettystarter.netty.unpack.Unpacking;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;

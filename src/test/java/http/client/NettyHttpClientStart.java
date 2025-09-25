@@ -5,7 +5,7 @@ import com.sas.sasnettystarter.netty.NettyLink;
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.log.LogMerge;
-import com.sas.sasnettystarter.netty.mods.operation.NettyHttpClientOperations;
+import com.sas.sasnettystarter.netty.ops.http.NettyHttpClientOperations;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.http.HttpClientCodec;

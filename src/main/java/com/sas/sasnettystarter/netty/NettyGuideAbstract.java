@@ -1,7 +1,11 @@
 package com.sas.sasnettystarter.netty;
 
-import com.sas.sasnettystarter.netty.mods.*;
-import com.sas.sasnettystarter.netty.mods.operation.*;
+import com.sas.sasnettystarter.netty.ops.core.NettyProjectContext;
+import com.sas.sasnettystarter.netty.ops.embedded.NettyNoNetworkOperations;
+import com.sas.sasnettystarter.netty.ops.http.NettyHttpClientOperations;
+import com.sas.sasnettystarter.netty.ops.tcp.NettyTcpClientOperations;
+import com.sas.sasnettystarter.netty.ops.tcp.NettyTcpServerOperations;
+import com.sas.sasnettystarter.netty.ops.udp.NettyUdpOperations;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
@@ -60,7 +64,7 @@ public abstract class NettyGuideAbstract {
         if (Objects.isNull(support)) {
             return null;
         }
-        NettyMods mods = support.getMods();
+        NettyProjectContext mods = support.getMods();
         // 客户端
         if (NettyType.C_TCP == mods.nettyType) {
             return (NettyTcpClientOperations) mods;
@@ -83,7 +87,7 @@ public abstract class NettyGuideAbstract {
         if (Objects.isNull(support)) {
             return null;
         }
-        NettyMods mods = support.getMods();
+        NettyProjectContext mods = support.getMods();
         // 客户端
         if (NettyType.C_HTTP == mods.nettyType) {
             return (NettyHttpClientOperations) mods;
@@ -106,7 +110,7 @@ public abstract class NettyGuideAbstract {
         if (Objects.isNull(support)) {
             return null;
         }
-        NettyMods mods = support.getMods();
+        NettyProjectContext mods = support.getMods();
         // 服务端
         if (NettyType.S_TCP == mods.nettyType) {
             return (NettyTcpServerOperations) mods;
@@ -130,7 +134,7 @@ public abstract class NettyGuideAbstract {
         if (Objects.isNull(support)) {
             return null;
         }
-        NettyMods mods = support.getMods();
+        NettyProjectContext mods = support.getMods();
         // 服务端
         if (NettyType.UDP == mods.nettyType) {
             return (NettyUdpOperations) mods;
@@ -153,7 +157,7 @@ public abstract class NettyGuideAbstract {
         if (Objects.isNull(support)) {
             return null;
         }
-        NettyMods mods = support.getMods();
+        NettyProjectContext mods = support.getMods();
         // 客户端
         if (NettyType.NO_NETWORK_CHANNEL == mods.nettyType) {
             return (NettyNoNetworkOperations) mods;

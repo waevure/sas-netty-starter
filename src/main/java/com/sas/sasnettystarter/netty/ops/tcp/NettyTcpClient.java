@@ -1,4 +1,4 @@
-package com.sas.sasnettystarter.netty.mods;
+package com.sas.sasnettystarter.netty.ops.tcp;
 
 import com.sas.sasnettystarter.netty.IpPortAddress;
 import com.sas.sasnettystarter.netty.NettyType;
@@ -6,7 +6,7 @@ import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.constant.NettyConstant;
 import com.sas.sasnettystarter.netty.exception.NettyLinkException;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
-import com.sas.sasnettystarter.netty.mods.operation.NettyTcpClientOperations;
+import com.sas.sasnettystarter.netty.ops.core.NettyServerBaseContext;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -17,16 +17,16 @@ import java.util.Objects;
 import java.util.function.Function;
 
 /**
- * @ClassName: NettyTcpClientMods
+ * @ClassName: NettyTcpClient
  * @Description:
  * @Author: Wqy
  * @Date: 2025-09-24 15:21
  * @Version: 1.0
  **/
 @Slf4j
-public class NettyTcpClientMods extends NettyServerMods implements NettyTcpClientOperations {
+public class NettyTcpClient extends NettyServerBaseContext implements NettyTcpClientOperations {
 
-    public NettyTcpClientMods(ProjectAbstract pe, NettyType nettyType, Bootstrap bootstrap, EventLoopGroup group, Function<Channel, Boolean> startSuccessCallback) {
+    public NettyTcpClient(ProjectAbstract pe, NettyType nettyType, Bootstrap bootstrap, EventLoopGroup group, Function<Channel, Boolean> startSuccessCallback) {
         super(pe, nettyType);
         this.bootstrap = bootstrap;
         this.bossGroup = group;

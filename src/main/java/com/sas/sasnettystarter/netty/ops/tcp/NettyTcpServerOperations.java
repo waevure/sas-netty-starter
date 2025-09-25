@@ -1,4 +1,4 @@
-package com.sas.sasnettystarter.netty.mods.operation;
+package com.sas.sasnettystarter.netty.ops.tcp;
 
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
 import io.netty.channel.ChannelHandlerContext;

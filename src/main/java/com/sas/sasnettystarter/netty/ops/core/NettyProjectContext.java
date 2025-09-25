@@ -1,4 +1,4 @@
-package com.sas.sasnettystarter.netty.mods;
+package com.sas.sasnettystarter.netty.ops.core;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.sas.sasnettystarter.netty.IpPortAddress;
@@ -24,7 +24,7 @@ import java.util.function.Function;
  */
 @Slf4j
 @Getter
-public abstract class NettyMods {
+public abstract class NettyProjectContext {
 
     /**
      * 项目信息
@@ -46,10 +46,10 @@ public abstract class NettyMods {
      */
     public Function<Channel, Boolean> startSuccessCallback;
 
-    public NettyMods() {
+    public NettyProjectContext() {
     }
 
-    public NettyMods(ProjectAbstract pe, NettyType nettyType) {
+    public NettyProjectContext(ProjectAbstract pe, NettyType nettyType) {
         this.pe = pe;
         this.nettyType = nettyType;
         this.variable = new Variable();

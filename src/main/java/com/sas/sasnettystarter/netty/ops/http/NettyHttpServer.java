@@ -1,9 +1,9 @@
-package com.sas.sasnettystarter.netty.mods;
+package com.sas.sasnettystarter.netty.ops.http;
 
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.cache.Variable;
-import com.sas.sasnettystarter.netty.mods.operation.NettyHttpServerOperations;
+import com.sas.sasnettystarter.netty.ops.core.NettyServerBaseContext;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import lombok.extern.slf4j.Slf4j;
@@ -11,14 +11,14 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Objects;
 
 /**
- * @ClassName: NettyHttpClientMods
+ * @ClassName: NettyHttpClient
  * @Description: netty-http-client功能
  * @Author: Wqy
  * @Date: 2024-10-29 10:30
  * @Version: 1.0
  **/
 @Slf4j
-public class NettyHttpServerMods extends NettyServerMods implements NettyHttpServerOperations {
+public class NettyHttpServer extends NettyServerBaseContext implements NettyHttpServerOperations {
 
     /**
      * @param nettyType   类型
@@ -26,7 +26,7 @@ public class NettyHttpServerMods extends NettyServerMods implements NettyHttpSer
      * @param bossGroup   boss组
      * @param workerGroup worker组
      */
-    public NettyHttpServerMods(ProjectAbstract pe, NettyType nettyType, ServerBootstrap bootstrap, EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
+    public NettyHttpServer(ProjectAbstract pe, NettyType nettyType, ServerBootstrap bootstrap, EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
         super(pe, nettyType);
         this.serverBootstrap = bootstrap;
         this.bossGroup = bossGroup;

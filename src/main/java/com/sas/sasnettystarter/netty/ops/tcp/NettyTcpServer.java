@@ -1,11 +1,11 @@
-package com.sas.sasnettystarter.netty.mods;
+package com.sas.sasnettystarter.netty.ops.tcp;
 
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.cache.Variable;
 import com.sas.sasnettystarter.netty.exception.NettyLinkException;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
-import com.sas.sasnettystarter.netty.mods.operation.NettyTcpServerOperations;
+import com.sas.sasnettystarter.netty.ops.core.NettyServerBaseContext;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -17,21 +17,21 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * @ClassName: NettyTcpClientMods
+ * @ClassName: NettyTcpClient
  * @Description:
  * @Author: Wqy
  * @Date: 2025-09-24 15:21
  * @Version: 1.0
  **/
 @Slf4j
-public class NettyTcpServerMods extends NettyServerMods implements NettyTcpServerOperations {
+public class NettyTcpServer extends NettyServerBaseContext implements NettyTcpServerOperations {
     /**
      * @param nettyType   类型
      * @param bootstrap   netty引导类
      * @param bossGroup   boss组
      * @param workerGroup worker组
      */
-    public NettyTcpServerMods(ProjectAbstract pe, NettyType nettyType, ServerBootstrap bootstrap, EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
+    public NettyTcpServer(ProjectAbstract pe, NettyType nettyType, ServerBootstrap bootstrap, EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
         super(pe, nettyType);
         this.serverBootstrap = bootstrap;
         this.bossGroup = bossGroup;

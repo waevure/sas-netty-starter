@@ -1,9 +1,9 @@
-package com.sas.sasnettystarter.netty.mods;
+package com.sas.sasnettystarter.netty.ops.udp;
 
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
-import com.sas.sasnettystarter.netty.mods.operation.NettyUdpOperations;
+import com.sas.sasnettystarter.netty.ops.core.NettyServerBaseContext;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import lombok.extern.slf4j.Slf4j;
@@ -11,16 +11,16 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Objects;
 
 /**
- * @ClassName: NettyUdpMods
+ * @ClassName: NettyUdpServer
  * @Description: netty-udp-client功能
  * @Author: Wqy
  * @Date: 2025-09-24 10:30
  * @Version: 1.0
  **/
 @Slf4j
-public class NettyUdpMods extends NettyServerMods implements NettyUdpOperations {
+public class NettyUdpServer extends NettyServerBaseContext implements NettyUdpOperations {
 
-    public NettyUdpMods(ProjectAbstract pe, NettyType nettyType, Bootstrap bootstrap, EventLoopGroup workerGroup) {
+    public NettyUdpServer(ProjectAbstract pe, NettyType nettyType, Bootstrap bootstrap, EventLoopGroup workerGroup) {
         super(pe, nettyType);
         this.bootstrap = bootstrap;
         this.workerGroup = workerGroup;
