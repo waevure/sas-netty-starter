@@ -69,17 +69,17 @@ public class NettyUdpServerStart {
         // 核心线程数 2
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
-        // 每隔 3 秒执行一次任务，延迟 1 秒启动
-        scheduler.scheduleAtFixedRate(() -> {
-            try {
-                System.out.println(Thread.currentThread().getName() + " 定时任务执行: " + System.currentTimeMillis());
-                NettyUdpOperations ability = NettyUdpServerGuide.udpServerOperations(pa);
-                // 下发指令
-                ability.distributeInstruct(new NettyWriteBo(pa, "127.0.0.1", 6677));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }, 5, 3, TimeUnit.SECONDS);
+//        // 每隔 3 秒执行一次任务，延迟 1 秒启动
+//        scheduler.scheduleAtFixedRate(() -> {
+//            try {
+//                System.out.println(Thread.currentThread().getName() + " 定时任务执行: " + System.currentTimeMillis());
+//                NettyUdpOperations ability = NettyUdpServerGuide.udpServerOperations(pa);
+//                // 下发指令
+//                ability.distributeInstruct(new NettyWriteBo(pa, "127.0.0.1", 6677));
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }, 5, 3, TimeUnit.SECONDS);
     }
 
     public static void main(String[] args) {

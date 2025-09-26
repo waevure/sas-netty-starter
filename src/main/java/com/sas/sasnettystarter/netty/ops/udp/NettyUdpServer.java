@@ -11,6 +11,31 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Objects;
 
 /**
+ * udp较为简单，不区分客户端服务端，所以这样构建就行，端口作为服务端可写，作为客户端可不写。
+ *         NettyLink link = new NettyLink();
+ *         link.addServerPort(8877);
+ *         link
+ *                 // 添加bootstrap-option
+ *                 .addBootstrapOption(ChannelOption.SO_BROADCAST, false)
+ *                 // 独立内存池
+ *                 .addBootstrapOption(ChannelOption.ALLOCATOR, allocator)
+ *                 // 开启日志
+ *                 .logMerge(new LogMerge(LogLevel.INFO))
+ *                 // 添加指令分发器
+ *                 .addReadHandler(StringCusUdpServerReader.class)
+ *                 .addWriteHandler(StringCusUdpServerWriter.class);
+ *
+ *         // 将projectInterface加入缓存
+ *         NettyUdpServerGuide.putProject(pa);
+ *
+ *         //使用引导类创建netty
+ *         NettyUdpServerGuide.initStart(
+ *                 pa,
+ *                 NettyType.UDP,
+ *                 new ThreadPoolExecutor(1, 2, 5, TimeUnit.SECONDS, new ArrayBlockingQueue<>(10)),
+ *                 link
+ *         );
+ * 注意：udp是无连接，所以无需开启openDefaultChannelStatus(),即便开了，也不会生效
  * @ClassName: NettyUdpServer
  * @Description: netty-udp-client功能
  * @Author: Wqy

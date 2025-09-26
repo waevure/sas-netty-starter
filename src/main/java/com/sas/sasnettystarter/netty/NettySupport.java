@@ -142,9 +142,11 @@ public class NettySupport {
 
         //对默认处理器进行配置
         if (this.getNettyLink().getOpenDefaultChannelStatusManager()) {
-            builder.openDefaultChannelStatus(this.getNettyLink().getDefaultFunctionRead());
-            builder.addOnlineUserLogic(this.getNettyLink().getOnlineUserLogic());
-            builder.addOfflineUserLogic(this.getNettyLink().getOfflineUserLogic());
+            if (this.getNettyType() != NettyType.UDP) {
+                builder.openDefaultChannelStatus(this.getNettyLink().getDefaultFunctionRead());
+                builder.addOnlineUserLogic(this.getNettyLink().getOnlineUserLogic());
+                builder.addOfflineUserLogic(this.getNettyLink().getOfflineUserLogic());
+            }
         }
 
         // 添加Pipeline前的处理器
