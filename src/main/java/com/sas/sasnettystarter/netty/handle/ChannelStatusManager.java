@@ -3,7 +3,7 @@ package com.sas.sasnettystarter.netty.handle;
 import com.sas.sasnettystarter.netty.IpPortAddress;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.TiFunction;
-import com.sas.sasnettystarter.netty.cache.Variable;
+import com.sas.sasnettystarter.netty.cache.VariableChannelCache;
 import com.sas.sasnettystarter.netty.handle.bo.NettyOfflineBo;
 import com.sas.sasnettystarter.netty.handle.bo.NettyOnlineBo;
 import io.netty.channel.ChannelHandlerContext;
@@ -25,7 +25,7 @@ import java.util.Objects;
 public class ChannelStatusManager extends LogicHandler {
 
     // 项目接口表记
-    private ProjectAbstract projectAbstract;
+    private ProjectAbstract pe;
     /**
      * 读取回调
      */
@@ -34,13 +34,13 @@ public class ChannelStatusManager extends LogicHandler {
     /**
      * 缓存引用
      */
-    private Variable variable;
+    private VariableChannelCache variableChannelCache;
 
-    public ChannelStatusManager(TiFunction<ChannelHandlerContext, Object, ProjectAbstract, Object> function, Variable variable, ProjectAbstract projectAbstract) {
-        log.info("map引用:{}", variable);
+    public ChannelStatusManager(TiFunction<ChannelHandlerContext, Object, ProjectAbstract, Object> function, VariableChannelCache variableChannelCache, ProjectAbstract pe) {
+        log.info("map引用:{}", variableChannelCache);
         this.function = function;
-        this.variable = variable;
-        this.projectAbstract = projectAbstract;
+        this.variableChannelCache = variableChannelCache;
+        this.pe = pe;
     }
 
     /**
@@ -52,7 +52,7 @@ public class ChannelStatusManager extends LogicHandler {
      */
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        log.info("{}-信道登记:{}", this.getProjectAbstract().toStr(), ctx.toString());
+        log.info("{}-信道登记:{}", this.getPe().toStr(), ctx.toString());
     }
 
     /**
@@ -64,7 +64,7 @@ public class ChannelStatusManager extends LogicHandler {
      */
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        log.error("{}-信道未注册:{}", this.getProjectAbstract().toStr(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort());
+        log.error("{}-信道未注册:{}", this.getPe().toStr(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort());
         super.channelUnregistered(ctx);
     }
 
@@ -80,10 +80,10 @@ public class ChannelStatusManager extends LogicHandler {
         //解析channel
         String key = IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort();
         //加入缓存数据
-        this.getVariable().putCtx(key, ctx);
+        this.getVariableChannelCache().putCtx(key, ctx);
         // 写入用户事件
-        ctx.fireUserEventTriggered(new NettyOnlineBo(this.getProjectAbstract()));
-        log.info("{}-沟道激活:{}", this.getProjectAbstract().toStr(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort());
+        ctx.fireUserEventTriggered(new NettyOnlineBo(this.getPe()));
+        log.info("{}-沟道激活:{}", this.getPe().toStr(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort());
     }
 
     /**
@@ -96,10 +96,10 @@ public class ChannelStatusManager extends LogicHandler {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         //释放资源
-        this.variable.removeCtx(ctx);
+        this.getVariableChannelCache().removeCtx(ctx);
         // 写入用户事件
-        ctx.fireUserEventTriggered(new NettyOfflineBo(this.getProjectAbstract()));
-        log.warn("{}-连接断开:{}", this.getProjectAbstract().toStr(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort());
+        ctx.fireUserEventTriggered(new NettyOfflineBo(this.getPe()));
+        log.warn("{}-连接断开:{}", this.getPe().toStr(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort());
     }
 
     /**
@@ -113,9 +113,9 @@ public class ChannelStatusManager extends LogicHandler {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         boolean release = true;
         try {
-            if (Objects.nonNull(this.function)) {
+            if (Objects.nonNull(this.getFunction())) {
                 // 所有设备状态
-                this.function.apply(ctx, msg, this.projectAbstract);
+                this.getFunction().apply(ctx, msg, this.getPe());
             } else {
                 release = false;
                 super.channelRead(ctx, msg);
@@ -136,7 +136,7 @@ public class ChannelStatusManager extends LogicHandler {
      */
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        log.debug("{}-通道读取完成:{}", this.getProjectAbstract().toStr(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort());
+        log.debug("{}-通道读取完成:{}", this.getPe().toStr(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort());
     }
 
     /**
@@ -148,7 +148,7 @@ public class ChannelStatusManager extends LogicHandler {
      */
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        log.info("{}-已触发用户事件:{}", this.getProjectAbstract().toStr(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort());
+        log.info("{}-已触发用户事件:{}", this.getPe().toStr(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort());
     }
 
     /**
@@ -159,7 +159,7 @@ public class ChannelStatusManager extends LogicHandler {
      */
     @Override
     public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
-        log.warn("{}-频道可写入性已更改:{}", this.getProjectAbstract().toStr(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort());
+        log.warn("{}-频道可写入性已更改:{}", this.getPe().toStr(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort());
     }
 
     /**
@@ -173,10 +173,10 @@ public class ChannelStatusManager extends LogicHandler {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         cause.printStackTrace();
         //释放资源
-        this.variable.removeCtx(ctx);
+        this.getVariableChannelCache().removeCtx(ctx);
         // 写入用户事件
-        ctx.fireUserEventTriggered(new NettyOfflineBo(this.getProjectAbstract()));
-        log.error("{}-异常-断开连接:{}", this.getProjectAbstract().toStr(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort());
+        ctx.fireUserEventTriggered(new NettyOfflineBo(this.getPe()));
+        log.error("{}-异常-断开连接:{}", this.getPe().toStr(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort());
         ctx.close();
     }
 

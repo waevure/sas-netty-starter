@@ -93,7 +93,7 @@ public class NettyUdpServer extends NettyServerBaseContext implements NettyUdpOp
             this.getWorkerGroup().shutdownGracefully();
         }
         // 销毁variable
-        this.getVariable().destroy(this.getPe());
+        this.getVariableChannelCache().destroy(this.getPe());
         log.info("Netty-UDP服务销毁完成:{}", this);
         return true;
     }

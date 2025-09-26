@@ -3,11 +3,15 @@ package tcp.server;
 import com.sas.sasnettystarter.netty.NettyLink;
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
+import com.sas.sasnettystarter.netty.cache.VariableChannelCache;
 import com.sas.sasnettystarter.netty.handle.NettyClientOfflineHandler;
 import com.sas.sasnettystarter.netty.handle.NettyClientOnlineHandler;
+import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
 import com.sas.sasnettystarter.netty.log.LogMerge;
+import com.sas.sasnettystarter.netty.ops.tcp.NettyTcpServerOperations;
 import com.sas.sasnettystarter.netty.unpack.Unpacking;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.logging.LogLevel;
 import lombok.extern.slf4j.Slf4j;
@@ -80,20 +84,22 @@ public class NettyTcpServerStart {
                 new ThreadPoolExecutor(1, 2, 5, TimeUnit.SECONDS, new ArrayBlockingQueue<>(10)),
                 link
         );
-//
-//        // 核心线程数 2
-//        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
-//
-//        // 每隔 3 秒执行一次任务，延迟 1 秒启动
-//        scheduler.scheduleAtFixedRate(() -> {
-//            System.out.println(Thread.currentThread().getName() + " 定时任务执行: " + System.currentTimeMillis());
-//            // 获取tcp服务端能力
-//            NettyTcpServerOperations ability = NettyTcpServerGuide.tcpServerOperations(pa);
-//            // 下发指令
-//            for (String key : ability.registerClientChannel().keySet()) {
-//                ability.distributeInstruct(key, new NettyWriteBo());
-//            }
-//        }, 1, 3, TimeUnit.SECONDS);
+
+        // 核心线程数 2
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
+
+        // 每隔 3 秒执行一次任务，延迟 1 秒启动
+        scheduler.scheduleAtFixedRate(() -> {
+            System.out.println(Thread.currentThread().getName() + " 定时任务执行: " + System.currentTimeMillis());
+            // 获取tcp服务端能力
+            NettyTcpServerOperations ability = NettyTcpServerGuide.tcpServerOperations(pa);
+            // 获取所有通道
+            VariableChannelCache variableChannelCache = NettyTcpServerGuide.support(pa).getNettyServerContext().getVariableChannelCache();
+            // 下发指令
+            for (ChannelHandlerContext ctx : variableChannelCache.channelActiveList()) {
+                ability.distributeInstruct(ctx, new NettyWriteBo(pa));
+            }
+        }, 1, 3, TimeUnit.SECONDS);
     }
 
     public static void main(String[] args) {
@@ -101,10 +107,10 @@ public class NettyTcpServerStart {
         try {
             NettyTcpServerProject pe = new NettyTcpServerProject("TCP服务端", "10001");
             serverStart.startTcpServer(pe);
-//            // 1分钟销毁
-//            Thread.sleep(1000 * 60);
-//            // 销毁项目
-//            NettyTcpServerGuide.destroyServer(pe);
+            // 1分钟销毁
+            Thread.sleep(1000 * 60);
+            // 销毁项目
+            NettyTcpServerGuide.destroyServer(pe);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -36,6 +36,13 @@ public interface NettyTcpServerOperations {
     void distributeInstruct(String key, NettyWriteBo writeData);
 
     /**
+     * 下发指令
+     * @param ctx
+     * @param writeData
+     */
+    void distributeInstruct(ChannelHandlerContext ctx, NettyWriteBo writeData);
+
+    /**
      * 全部注册通道
      * @return
      */

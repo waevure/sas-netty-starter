@@ -59,7 +59,7 @@ public class NettyHttpClient extends NettyServerBaseContext implements NettyHttp
             // 关闭bossGroup
             this.getBossGroup().shutdownGracefully().syncUninterruptibly();
             // 关闭所有客户端连接
-            this.getVariable().destroy(this.getPe());
+            this.getVariableChannelCache().destroy(this.getPe());
             // 打印关闭信息
             this.printNettyBootstrapGroupStatus();
             // 打印日志：销毁完成
@@ -111,7 +111,7 @@ public class NettyHttpClient extends NettyServerBaseContext implements NettyHttp
                                  Function<HttpHeaders, Boolean> headerFunc,
                                  Function<ChannelFuture, Boolean> callback) {
         // 获取请求地址
-        ChannelHandlerContext ctx = this.getVariable().getCtx(ipPortAddress.ipPort());
+        ChannelHandlerContext ctx = this.getVariableChannelCache().getCtx(ipPortAddress.ipPort());
         if (Objects.isNull(ctx) || !ctx.channel().isActive()) {
             log.error("连接不存在:{}", ipPortAddress.ipPort());
             return;

@@ -110,7 +110,7 @@ public class NettyTcpClient extends NettyServerBaseContext implements NettyTcpCl
             // 关闭bossGroup
             this.getBossGroup().shutdownGracefully().syncUninterruptibly();
             // 关闭所有客户端连接
-            this.getVariable().destroy(this.getPe());
+            this.getVariableChannelCache().destroy(this.getPe());
             // 打印日志：销毁完成
             log.info("{}-TCP-客户端-销毁完成", this.getPe().toStr());
             return true;

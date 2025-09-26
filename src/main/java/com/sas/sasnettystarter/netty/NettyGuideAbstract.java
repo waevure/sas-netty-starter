@@ -36,7 +36,7 @@ public abstract class NettyGuideAbstract {
      */
     public static void initStart(ProjectAbstract pe, NettyType nettyType, ThreadPoolExecutor executor, NettyLink nettyLink) throws Exception {
         // 构建support
-        NettySupport support = new NettySupport(pe, nettyType, executor, nettyLink).buildMods();
+        NettySupport support = new NettySupport(pe, nettyType, executor, nettyLink).buildNettyServerContext();
         // 添加本地缓存
         NettyGuideAbstract.NETTY_GUIDE.put(pe, support);
         // 提交任务

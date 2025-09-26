@@ -4,7 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.sas.sasnettystarter.netty.IpPortAddress;
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
-import com.sas.sasnettystarter.netty.cache.Variable;
+import com.sas.sasnettystarter.netty.cache.VariableChannelCache;
 import com.sas.sasnettystarter.netty.exception.NettyServiceException;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
 import io.netty.bootstrap.Bootstrap;
@@ -13,13 +13,12 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoopGroup;
-import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
@@ -62,7 +61,7 @@ public abstract class NettyServerBaseContext extends NettyProjectContext {
     /**
      * 外部使用的通道缓存，一般key为设备唯一编码。其实就是存一些执行力注册的设备
      */
-    private Map<String, ChannelHandlerContext> keyMap = new HashMap<>();
+    private Map<String, ChannelHandlerContext> keyMap = new ConcurrentHashMap<>();
 
     /**
      * 服务通道构建结果
@@ -72,25 +71,25 @@ public abstract class NettyServerBaseContext extends NettyProjectContext {
     /**
      * 所有客户端连接服务端的结果
      */
-    private Map<String, ChannelFuture> channelFutures = new HashMap<>();
+    private Map<String, ChannelFuture> channelFutures = new ConcurrentHashMap<>();
 
     /**
      * 缓存信息值
      */
-    private Variable variable;
+    private VariableChannelCache variableChannelCache;
 
     /**
      * 启动成功回调
      */
     private Function<Channel, Boolean> startSuccessCallback;
 
-    public NettyServerBaseContext() {
-        this.variable = new Variable();
+    public NettyServerBaseContext(ProjectAbstract pe) {
+        this.variableChannelCache = new VariableChannelCache(pe);
     }
 
     public NettyServerBaseContext(ProjectAbstract pe, NettyType nettyType) {
         super(pe, nettyType);
-        this.variable = new Variable();
+        this.variableChannelCache = new VariableChannelCache(pe);
     }
 
     /**
@@ -107,7 +106,7 @@ public abstract class NettyServerBaseContext extends NettyProjectContext {
         this.serverBootstrap = serverBootstrap;
         this.bossGroup = bossGroup;
         this.workerGroup = workerGroup;
-        this.variable = new Variable();
+        this.variableChannelCache = new VariableChannelCache(pe);
     }
 
     /**
@@ -125,7 +124,7 @@ public abstract class NettyServerBaseContext extends NettyProjectContext {
         this.bossGroup = bossGroup;
         this.workerGroup = workerGroup;
         this.startSuccessCallback = startSuccessCallback;
-        this.variable = new Variable();
+        this.variableChannelCache = new VariableChannelCache(pe);
     }
 
     /**
@@ -139,7 +138,7 @@ public abstract class NettyServerBaseContext extends NettyProjectContext {
         super(pe, nettyType);
         this.bootstrap = bootstrap;
         this.bossGroup = bossGroup;
-        this.variable = new Variable();
+        this.variableChannelCache = new VariableChannelCache(pe);
     }
 
     /**
@@ -154,7 +153,7 @@ public abstract class NettyServerBaseContext extends NettyProjectContext {
         this.bootstrap = bootstrap;
         this.bossGroup = bossGroup;
         this.startSuccessCallback = startSuccessCallback;
-        this.variable = new Variable();
+        this.variableChannelCache = new VariableChannelCache(pe);
     }
 
     public void setChannelFuture(ChannelFuture channelFuture) {
@@ -225,7 +224,7 @@ public abstract class NettyServerBaseContext extends NettyProjectContext {
      * @return
      */
     public <T extends NettyWriteBo> void writeAndFlush(T writeBo) {
-        ChannelHandlerContext ctx = this.variable.getCtx(writeBo.ipPortStr());
+        ChannelHandlerContext ctx = this.variableChannelCache.getCtx(writeBo.ipPortStr());
         if (Objects.nonNull(ctx)) {
             ctx.channel().writeAndFlush(writeBo);
         } else {
@@ -240,7 +239,7 @@ public abstract class NettyServerBaseContext extends NettyProjectContext {
      * @param ipPortAddress
      */
     public void closeConnect(IpPortAddress ipPortAddress) {
-        ChannelHandlerContext ctx = this.variable.getCtx(ipPortAddress.ipPort());
+        ChannelHandlerContext ctx = this.variableChannelCache.getCtx(ipPortAddress.ipPort());
         ctx.channel().close();
     }
 
@@ -251,7 +250,7 @@ public abstract class NettyServerBaseContext extends NettyProjectContext {
      * @return
      */
     public Boolean channelActive(IpPortAddress ipPortAddress) {
-        ChannelHandlerContext context = this.variable.getCtx(ipPortAddress.ipPort());
+        ChannelHandlerContext context = this.variableChannelCache.getCtx(ipPortAddress.ipPort());
         if (ObjectUtil.isNotNull(context)) {
             return context.channel().isActive();
         }

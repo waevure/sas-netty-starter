@@ -1,19 +1,9 @@
 package com.sas.sasnettystarter.netty.ops.core;
 
-import cn.hutool.core.util.ObjectUtil;
-import com.sas.sasnettystarter.netty.IpPortAddress;
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
-import com.sas.sasnettystarter.netty.cache.Variable;
-import com.sas.sasnettystarter.netty.exception.NettyServiceException;
-import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * Netty项目信息

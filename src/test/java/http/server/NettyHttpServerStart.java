@@ -62,6 +62,7 @@ public class NettyHttpServerStart {
                             return true;
                         }
                 )
+                .openDefaultChannelStatus()
                 // 添加指令分发器
                 .addReadHandler(StringCusHttpServerReader.class)
                 .addWriteHandler(StringCusHttpServerWriter.class);

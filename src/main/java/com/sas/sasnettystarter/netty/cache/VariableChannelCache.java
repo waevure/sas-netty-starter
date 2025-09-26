@@ -1,14 +1,13 @@
 package com.sas.sasnettystarter.netty.cache;
 
 import com.sas.sasnettystarter.netty.IpPortAddress;
+import com.sas.sasnettystarter.netty.PeBo;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @Description
@@ -16,20 +15,30 @@ import java.util.Map;
  * @Date: 2019/9/18 14:31
  */
 @Slf4j
-public class Variable {
+public class VariableChannelCache extends PeBo {
+
+    public VariableChannelCache(ProjectAbstract pe) {
+        super(pe);
+    }
 
     /**
      * 通道缓存
      * key: ip:port
      */
-    private final HashMap<String, ChannelHandlerContext> MAP_CHANNEL = new HashMap<>();
+    private final Map<String, ChannelHandlerContext> MAP_CHANNEL = new ConcurrentHashMap<>();
 
     public ChannelHandlerContext getCtx(String key) {
         return this.MAP_CHANNEL.get(key);
     }
 
     public ChannelHandlerContext putCtx(String key, ChannelHandlerContext ctx) {
-        return this.MAP_CHANNEL.put(key, ctx);
+        return this.MAP_CHANNEL.compute(key, (k, oldCtx) -> {
+            if (oldCtx != null && oldCtx.channel().isActive()) {
+                log.warn("{}-{}-已存在，进行关闭并添加新连接", this.getPe().toStr(), k);
+                oldCtx.close(); // 关闭旧连接
+            }
+            return ctx; // 放入新连接
+        });
     }
 
     public ChannelHandlerContext removeCtx(String key) {
@@ -37,9 +46,11 @@ public class Variable {
     }
 
     public ChannelHandlerContext removeCtx(ChannelHandlerContext ctx) {
-        for (String key : this.MAP_CHANNEL.keySet()) {
-            if (this.MAP_CHANNEL.get(key) == ctx) {
-                return this.MAP_CHANNEL.remove(key);
+        for (Iterator<Map.Entry<String, ChannelHandlerContext>> it = MAP_CHANNEL.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<String, ChannelHandlerContext> entry = it.next();
+            if (entry.getValue() == ctx) {
+                it.remove(); // 直接通过迭代器删除，效率高
+                return entry.getValue();
             }
         }
         return null;
@@ -66,7 +77,7 @@ public class Variable {
      * @return
      */
     public List<ChannelHandlerContext> channelActiveList() {
-        return new ArrayList<ChannelHandlerContext>(this.MAP_CHANNEL.values());
+        return new ArrayList<>(this.MAP_CHANNEL.values());
     }
 
     /**

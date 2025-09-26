@@ -2,7 +2,6 @@ package com.sas.sasnettystarter.netty.ops.http;
 
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
-import com.sas.sasnettystarter.netty.cache.Variable;
 import com.sas.sasnettystarter.netty.ops.core.NettyServerBaseContext;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;

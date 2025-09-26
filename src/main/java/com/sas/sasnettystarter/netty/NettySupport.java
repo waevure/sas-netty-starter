@@ -43,12 +43,8 @@ import java.util.function.Function;
  */
 @Slf4j
 @Getter
-public class NettySupport {
+public class NettySupport extends PeBo{
 
-    /**
-     * 项目信息
-     */
-    private ProjectAbstract pe;
     /**
      * netty类型
      */
@@ -72,13 +68,13 @@ public class NettySupport {
     private NettyServerBaseContext nettyServerContext;
 
     public NettySupport(ProjectAbstract pe, NettyType nettyType, NettyLink nettyLink) {
-        this.pe = pe;
+        super(pe);
         this.nettyType = nettyType;
         this.nettyLink = nettyLink;
     }
 
     public NettySupport(ProjectAbstract pe, NettyType nettyType, ThreadPoolExecutor executor, NettyLink nettyLink) {
-        this.pe = pe;
+        super(pe);
         this.nettyType = nettyType;
         this.executor = executor;
         this.nettyLink = nettyLink;
@@ -122,7 +118,7 @@ public class NettySupport {
      *
      * @return
      */
-    public NettySupport buildMods() throws Exception {
+    public NettySupport buildNettyServerContext() throws Exception {
         //获取构建器
         NettySupport.Builder builder = this.builder();
         // 为空则添加默认的
@@ -551,7 +547,7 @@ public class NettySupport {
             }
             // 默认状态管理器是否启用
             if (Objects.nonNull(defaultChannelStatus) && defaultChannelStatus) {
-                channel.pipeline().addLast(new ChannelStatusManager(defaultChannelReadFunc, nettyServerContext.getVariable(), pe));
+                channel.pipeline().addLast(new ChannelStatusManager(defaultChannelReadFunc, nettyServerContext.getVariableChannelCache(), pe));
                 // 添加上线处理器
                 channel.pipeline().addLast(this.onlineUserLogic.getDeclaredConstructor().newInstance());
                 // 添加离线处理器
