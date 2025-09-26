@@ -142,7 +142,7 @@ public class NettySupport {
 
         //对默认处理器进行配置
         if (this.getNettyLink().getOpenDefaultChannelStatusManager()) {
-            if (this.getNettyType() != NettyType.UDP) {
+            if (this.getNettyType() != NettyType.UDP && this.getNettyType() != NettyType.NO_NETWORK_CHANNEL) {
                 builder.openDefaultChannelStatus(this.getNettyLink().getDefaultFunctionRead());
                 builder.addOnlineUserLogic(this.getNettyLink().getOnlineUserLogic());
                 builder.addOfflineUserLogic(this.getNettyLink().getOfflineUserLogic());

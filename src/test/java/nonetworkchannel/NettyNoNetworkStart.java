@@ -47,6 +47,7 @@ public class NettyNoNetworkStart {
                 .addBootstrapOption(ChannelOption.ALLOCATOR, allocator)
                 // 开启日志
                 .logMerge(new LogMerge(LogLevel.INFO))
+                .openDefaultChannelStatus()
                 // 添加指令分发器
                 .addReadHandler(StringCusNoNetworkReader.class)
                 .addWriteHandler(StringCusNoNetworkWriter.class);
