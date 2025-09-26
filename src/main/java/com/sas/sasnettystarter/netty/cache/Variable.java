@@ -22,7 +22,7 @@ public class Variable {
      * 通道缓存
      * key: ip:port
      */
-    protected final HashMap<String, ChannelHandlerContext> MAP_CHANNEL = new HashMap<>();
+    private final HashMap<String, ChannelHandlerContext> MAP_CHANNEL = new HashMap<>();
 
     public ChannelHandlerContext getCtx(String key) {
         return this.MAP_CHANNEL.get(key);

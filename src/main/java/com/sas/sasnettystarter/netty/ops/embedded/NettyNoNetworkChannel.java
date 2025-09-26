@@ -1,6 +1,7 @@
 package com.sas.sasnettystarter.netty.ops.embedded;
 
 import com.sas.sasnettystarter.netty.NettyType;
+import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
 import com.sas.sasnettystarter.netty.ops.core.NettyServerBaseContext;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -20,9 +21,9 @@ public class NettyNoNetworkChannel extends NettyServerBaseContext implements Net
 
     private EmbeddedChannel channel;
 
-    public NettyNoNetworkChannel(EmbeddedChannel channel, NettyType type) {
+    public NettyNoNetworkChannel(EmbeddedChannel channel, ProjectAbstract pe, NettyType type) {
+        super(pe, type);
         this.channel = channel;
-        this.nettyType = type;
     }
 
     @Override
@@ -31,11 +32,16 @@ public class NettyNoNetworkChannel extends NettyServerBaseContext implements Net
     }
 
     @Override
+    public void awaitCloseSync(Integer port) {
+
+    }
+
+    @Override
     public boolean destroyServer() {
         log.info("Netty无网络channel开始销毁:{}", this);
         this.channel.close();
         // 销毁variable
-        this.variable.destroy(this.getPe());
+        this.getVariable().destroy(this.getPe());
         log.info("Netty无网络channel销毁完成:{}", this);
         return true;
     }

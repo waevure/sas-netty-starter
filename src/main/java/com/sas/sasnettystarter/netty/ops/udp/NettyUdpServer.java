@@ -21,24 +21,22 @@ import java.util.Objects;
 public class NettyUdpServer extends NettyServerBaseContext implements NettyUdpOperations {
 
     public NettyUdpServer(ProjectAbstract pe, NettyType nettyType, Bootstrap bootstrap, EventLoopGroup workerGroup) {
-        super(pe, nettyType);
-        this.bootstrap = bootstrap;
-        this.workerGroup = workerGroup;
+        super(pe, nettyType, bootstrap, workerGroup);
     }
 
     /**
      * 等待退出
      */
     @Override
-    public void awaitSync(Integer port) {
+    public void awaitCloseSync(Integer port) {
         try {
             log.info("[{}]-UDP-准备启动中:{}", this.getPe().toStr(), port);
-            ChannelFuture f = this.bootstrap.bind(port).sync();
+            ChannelFuture f = this.getBootstrap().bind(port).sync();
             log.info("[{}]-UDP-启动完成:{}", this.getPe().toStr(), port);
-            this.channelFuture = f;
+            this.setChannelFuture(f);;
             // 进行回调
-            if (Objects.nonNull(this.startSuccessCallback)) {
-                this.startSuccessCallback.apply(f.channel());
+            if (Objects.nonNull(this.getStartSuccessCallback())) {
+                this.getStartSuccessCallback().apply(f.channel());
             }
             //使用f.channel().closeFuture().sync()方法进行阻塞,等待服务端链路关闭之后main函数才退出。
             f.channel().closeFuture().sync();
@@ -53,24 +51,24 @@ public class NettyUdpServer extends NettyServerBaseContext implements NettyUdpOp
     }
 
     @Override
-    public void awaitSync() {
-        this.awaitSync(0);
+    public void awaitCloseSync() {
+        this.awaitCloseSync(0);
     }
 
     @Override
     public void distributeInstruct(NettyWriteBo writeData) {
-        this.channelFuture.channel().writeAndFlush(writeData);
+        this.getChannelFuture().channel().writeAndFlush(writeData);
     }
 
     @Override
     public boolean destroyServer() {
         log.info("Netty-UDP服务开始销毁:{}", this);
-        this.channelFuture.channel().close();
-        if (Objects.nonNull(this.workerGroup)) {
-            this.workerGroup.shutdownGracefully();
+        this.getChannelFuture().channel().close();
+        if (Objects.nonNull(this.getWorkerGroup())) {
+            this.getWorkerGroup().shutdownGracefully();
         }
         // 销毁variable
-        this.variable.destroy(this.getPe());
+        this.getVariable().destroy(this.getPe());
         log.info("Netty-UDP服务销毁完成:{}", this);
         return true;
     }

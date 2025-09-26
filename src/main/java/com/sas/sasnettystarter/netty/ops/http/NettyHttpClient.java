@@ -30,16 +30,45 @@ import java.util.function.Function;
 public class NettyHttpClient extends NettyServerBaseContext implements NettyHttpClientOperations {
 
     public NettyHttpClient(ProjectAbstract pe, NettyType nettyType, Bootstrap bootstrap, EventLoopGroup group) {
-        super(pe, nettyType);
-        this.bootstrap = bootstrap;
-        this.bossGroup = group;
+        super(pe, nettyType, bootstrap, group);
     }
 
     public NettyHttpClient(ProjectAbstract pe, NettyType nettyType, Bootstrap bootstrap, EventLoopGroup group, Function<Channel, Boolean> startSuccessCallback) {
-        super(pe, nettyType);
-        this.bootstrap = bootstrap;
-        this.bossGroup = group;
-        this.startSuccessCallback = startSuccessCallback;
+        super(pe, nettyType, bootstrap, group, startSuccessCallback);
+    }
+
+    @Override
+    public void awaitCloseSync(Integer port) {
+
+    }
+
+    @Override
+    public boolean destroyServer() {
+        try {
+            // 打印日志：开始销毁
+            log.info("{}-HTTP-客户端-开始销毁", this.getPe().toStr());
+            // 关闭所有服务连接
+            for (String key : this.getChannelFutures().keySet()) {
+                // 获取future
+                ChannelFuture future = this.getChannelFutures().get(key);
+                if (future.channel().isOpen()) {
+                    future.channel().close().syncUninterruptibly();
+                    log.info("{}-HTTP-客户端-关闭连接:{}", this.getPe().toStr(), key);
+                }
+            }
+            // 关闭bossGroup
+            this.getBossGroup().shutdownGracefully().syncUninterruptibly();
+            // 关闭所有客户端连接
+            this.getVariable().destroy(this.getPe());
+            // 打印关闭信息
+            this.printNettyBootstrapGroupStatus();
+            // 打印日志：销毁完成
+            log.info("{}-HTTP-客户端-销毁完成", this.getPe().toStr());
+            return true;
+        } catch (Exception ex) {
+            log.error("{} - TCP 客户端销毁失败: {}", this.getPe().toStr(), ex.getMessage(), ex);
+            return false;
+        }
     }
 
 
@@ -52,12 +81,17 @@ public class NettyHttpClient extends NettyServerBaseContext implements NettyHttp
             future.sync();
             if (future.isSuccess()) {
                 log.info("[{}]-{}-HTTP-客户端-同步连接成功", this.getPe().toStr(), ipPortAddress.ipPort());
-                this.channelFutures.put(ipPortAddress.ipPort(), future);
+                // ⭐ 监听关闭事件，移除缓存
+                future.channel().closeFuture().addListener((ChannelFutureListener) closeFuture -> {
+                    log.info("[{}]-{}-HTTP-客户端-连接已关闭，移除缓存", this.getPe().toStr(), ipPortAddress.ipPort());
+                    this.getChannelFutures().remove(ipPortAddress.ipPort());
+                });
+                this.getChannelFutures().put(ipPortAddress.ipPort(), future);
                 return true;
             } else {
                 future.cause().printStackTrace();
                 log.info("[{}]-{}-HTTP-客户端-同步连接失败", this.getPe().toStr(), ipPortAddress.ipPort());
-                this.channelFutures.put(ipPortAddress.ipPort(), future);
+                this.getChannelFutures().put(ipPortAddress.ipPort(), future);
                 return false;
             }
         } catch (Exception e) {
@@ -77,7 +111,7 @@ public class NettyHttpClient extends NettyServerBaseContext implements NettyHttp
                                  Function<HttpHeaders, Boolean> headerFunc,
                                  Function<ChannelFuture, Boolean> callback) {
         // 获取请求地址
-        ChannelHandlerContext ctx = this.variable.getCtx(ipPortAddress.ipPort());
+        ChannelHandlerContext ctx = this.getVariable().getCtx(ipPortAddress.ipPort());
         if (Objects.isNull(ctx) || !ctx.channel().isActive()) {
             log.error("连接不存在:{}", ipPortAddress.ipPort());
             return;
@@ -120,7 +154,6 @@ public class NettyHttpClient extends NettyServerBaseContext implements NettyHttp
             log.error("连接不存在:{}", ipPortAddress.ipPort());
             return;
         }
-
 
 
         // 创建 GET 请求

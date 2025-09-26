@@ -1,5 +1,7 @@
 package com.sas.sasnettystarter.netty.handle.bo;
 
+import com.sas.sasnettystarter.netty.ProjectAbstract;
+
 /**
  * netty读操作Domain父类
  * @author WQY
@@ -9,6 +11,10 @@ package com.sas.sasnettystarter.netty.handle.bo;
 public abstract class NettyReadBo extends NettyBo{
 
     public String msg;
+
+    public NettyReadBo(ProjectAbstract pe) {
+        super(pe);
+    }
 
     public String getMsg() {
         return msg;

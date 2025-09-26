@@ -1,12 +1,15 @@
 package com.sas.sasnettystarter.netty.handle.bo;
 
+import com.sas.sasnettystarter.netty.ProjectAbstract;
+
 /**
  * netty写操作Bo父类
+ *
  * @author WQY
  * @version 1.0
  * @date 2023/12/2 10:43
  */
-public class NettyWriteBo extends NettyBo{
+public class NettyWriteBo extends NettyBo {
 
     public String ip;
 
@@ -14,15 +17,18 @@ public class NettyWriteBo extends NettyBo{
 
     public String msg;
 
-    public NettyWriteBo() {
+    public NettyWriteBo(ProjectAbstract pe) {
+        super(pe);
     }
 
-    public NettyWriteBo(String ip, Integer port) {
+    public NettyWriteBo(ProjectAbstract pe, String ip, Integer port) {
+        super(pe);
         this.ip = ip;
         this.port = port;
     }
 
-    public NettyWriteBo(String ip, Integer port, String msg) {
+    public NettyWriteBo(ProjectAbstract pe, String ip, Integer port, String msg) {
+        super(pe);
         this.ip = ip;
         this.port = port;
         this.msg = msg;
@@ -30,9 +36,10 @@ public class NettyWriteBo extends NettyBo{
 
     /**
      * 获取ip:port
+     *
      * @return
      */
-    public String ipPortStr(){
+    public String ipPortStr() {
         return this.ip + ":" + this.port;
     }
 
@@ -40,15 +47,15 @@ public class NettyWriteBo extends NettyBo{
         this.msg = msg;
     }
 
-    public String getMsg(){
+    public String getMsg() {
         return this.msg;
     }
 
-    public String getIp(){
+    public String getIp() {
         return this.ip;
     }
 
-    public Integer getPort(){
+    public Integer getPort() {
         return this.port;
     }
 

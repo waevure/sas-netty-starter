@@ -70,14 +70,14 @@ public class NettyUdpClientStart {
 
         // 每隔 3 秒执行一次任务，延迟 1 秒启动
         scheduler.scheduleAtFixedRate(() -> {
-           try {
-               System.out.println(Thread.currentThread().getName() + " 定时任务执行: " + System.currentTimeMillis());
-               NettyUdpOperations ability = NettyUdpClientGuide.udpServerOperations(pa);
-               // 下发指令
-               ability.distributeInstruct(new NettyWriteBo("127.0.0.1", 6677));
-           }catch (Exception e){
-               e.printStackTrace();
-           }
+            try {
+                System.out.println(Thread.currentThread().getName() + " 定时任务执行: " + System.currentTimeMillis());
+                NettyUdpOperations ability = NettyUdpClientGuide.udpServerOperations(pa);
+                // 下发指令
+                ability.distributeInstruct(new NettyWriteBo(pa, "127.0.0.1", 6677));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }, 5, 3, TimeUnit.SECONDS);
     }
 
@@ -87,7 +87,7 @@ public class NettyUdpClientStart {
             NettyUdpClientProject pe = new NettyUdpClientProject("UDP客户端", "10001");
             serverStart.startUdpClient(pe);
             Thread.sleep(3000);
-            NettyUdpClientGuide.udpServerOperations(pe).distributeInstruct(new NettyWriteBo("127.0.0.1", 6677));
+            NettyUdpClientGuide.udpServerOperations(pe).distributeInstruct(new NettyWriteBo(pe, "127.0.0.1", 6677));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

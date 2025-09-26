@@ -1,17 +1,26 @@
 package com.sas.sasnettystarter.netty.ops.core;
 
+import cn.hutool.core.util.ObjectUtil;
+import com.sas.sasnettystarter.netty.IpPortAddress;
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
+import com.sas.sasnettystarter.netty.cache.Variable;
+import com.sas.sasnettystarter.netty.exception.NettyServiceException;
+import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoopGroup;
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * @ClassName: NettyServerBaseContext
@@ -20,16 +29,16 @@ import java.util.Map;
  * @Date: 2024-05-31 15:17
  * @Version: 1.0
  **/
-@Data
+@Getter
 @Slf4j
-public class NettyServerBaseContext extends NettyProjectContext {
+public abstract class NettyServerBaseContext extends NettyProjectContext {
 
     /**
      * netty引导类
      * 用途：客户端 或 UDP 场景
      * channel层级：只有一个 Channel（自己就是客户端的连接/UDP 通道）
      */
-    public Bootstrap bootstrap;
+    private Bootstrap bootstrap;
 
     /**
      * netty引导类
@@ -38,68 +47,158 @@ public class NettyServerBaseContext extends NettyProjectContext {
      * ① parent channel → NioServerSocketChannel（负责监听端口，接收新连接）
      * ② child channel → NioSocketChannel（每个客户端连接对应一个）
      */
-    public ServerBootstrap serverBootstrap;
+    private ServerBootstrap serverBootstrap;
 
     /**
      * boss组
      */
-    public EventLoopGroup bossGroup;
+    private EventLoopGroup bossGroup;
 
     /**
      * worker组
      */
-    public EventLoopGroup workerGroup;
+    private EventLoopGroup workerGroup;
 
     /**
      * 外部使用的通道缓存，一般key为设备唯一编码。其实就是存一些执行力注册的设备
      */
-    public Map<String, ChannelHandlerContext> keyMap = new HashMap<>();
+    private Map<String, ChannelHandlerContext> keyMap = new HashMap<>();
 
     /**
      * 服务通道构建结果
      */
-    public ChannelFuture channelFuture;
+    private ChannelFuture channelFuture;
 
     /**
      * 所有客户端连接服务端的结果
      */
-    public Map<String, ChannelFuture> channelFutures = new HashMap<>();
+    private Map<String, ChannelFuture> channelFutures = new HashMap<>();
+
+    /**
+     * 缓存信息值
+     */
+    private Variable variable;
+
+    /**
+     * 启动成功回调
+     */
+    private Function<Channel, Boolean> startSuccessCallback;
 
     public NettyServerBaseContext() {
+        this.variable = new Variable();
     }
 
     public NettyServerBaseContext(ProjectAbstract pe, NettyType nettyType) {
         super(pe, nettyType);
+        this.variable = new Variable();
     }
 
-    @Override
+    /**
+     * 构建 ServerBoostrap
+     *
+     * @param pe
+     * @param nettyType
+     * @param serverBootstrap
+     * @param bossGroup
+     * @param workerGroup
+     */
+    public NettyServerBaseContext(ProjectAbstract pe, NettyType nettyType, ServerBootstrap serverBootstrap, EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
+        super(pe, nettyType);
+        this.serverBootstrap = serverBootstrap;
+        this.bossGroup = bossGroup;
+        this.workerGroup = workerGroup;
+        this.variable = new Variable();
+    }
+
+    /**
+     * 构建 ServerBoostrap
+     *
+     * @param pe
+     * @param nettyType
+     * @param serverBootstrap
+     * @param bossGroup
+     * @param workerGroup
+     */
+    public NettyServerBaseContext(ProjectAbstract pe, NettyType nettyType, ServerBootstrap serverBootstrap, EventLoopGroup bossGroup, EventLoopGroup workerGroup, Function<Channel, Boolean> startSuccessCallback) {
+        super(pe, nettyType);
+        this.serverBootstrap = serverBootstrap;
+        this.bossGroup = bossGroup;
+        this.workerGroup = workerGroup;
+        this.startSuccessCallback = startSuccessCallback;
+        this.variable = new Variable();
+    }
+
+    /**
+     * 构建 Bootstrap
+     * @param pe
+     * @param nettyType
+     * @param bootstrap
+     * @param bossGroup
+     */
+    public NettyServerBaseContext(ProjectAbstract pe, NettyType nettyType, Bootstrap bootstrap, EventLoopGroup bossGroup) {
+        super(pe, nettyType);
+        this.bootstrap = bootstrap;
+        this.bossGroup = bossGroup;
+        this.variable = new Variable();
+    }
+
+    /**
+     * 构建 Bootstrap
+     * @param pe
+     * @param nettyType
+     * @param bootstrap
+     * @param bossGroup
+     */
+    public NettyServerBaseContext(ProjectAbstract pe, NettyType nettyType, Bootstrap bootstrap, EventLoopGroup bossGroup, Function<Channel, Boolean> startSuccessCallback) {
+        super(pe, nettyType);
+        this.bootstrap = bootstrap;
+        this.bossGroup = bossGroup;
+        this.startSuccessCallback = startSuccessCallback;
+        this.variable = new Variable();
+    }
+
+    public void setChannelFuture(ChannelFuture channelFuture) {
+        this.channelFuture = channelFuture;
+    }
+
+    public abstract void awaitCloseSync(Integer port);
+
+    /**
+     * 同步等待关闭
+     */
+    public void awaitCloseSync() {
+        this.awaitCloseSync(0);
+    }
+
     public boolean destroyServer() {
         return true;
     }
 
-    @Override
     public void printNettyServerBootstrapGroupStatus() {
-        log.info("===== {}-ServerBootstrap服务销毁状态检查 =====", this.getPe().toStr());
+        // 项目信息
+        String peStr = this.getPe().toStr();
+        log.info("===== {}-ServerBootstrap服务销毁状态检查 =====", peStr);
         // 通道状态
         if (channelFuture != null && channelFuture.channel() != null) {
-            log.info("{}-通道是否打开: {}", this.pe.toStr(), channelFuture.channel().isOpen() ? "是" : "否");
-            log.info("{}-通道是否激活: {}", this.pe.toStr(), channelFuture.channel().isActive() ? "是" : "否");
+            log.info("{}-通道是否打开: {}", peStr, channelFuture.channel().isOpen() ? "是" : "否");
+            log.info("{}-通道是否激活: {}", peStr, channelFuture.channel().isActive() ? "是" : "否");
         } else {
             log.info("{}-通道: 未初始化");
         }
         this.printNettyBootstrapGroupStatusCommon();
         // WorkerGroup 状态
         if (workerGroup != null) {
-            log.info("{}-WorkerGroup 是否正在关闭: {}", this.pe.toStr(), workerGroup.isShuttingDown() ? "是" : "否");
-            log.info("{}-WorkerGroup 是否已终止: {}", this.pe.toStr(), workerGroup.isTerminated() ? "是" : "否");
+            log.info("{}-WorkerGroup 是否正在关闭: {}", peStr, workerGroup.isShuttingDown() ? "是" : "否");
+            log.info("{}-WorkerGroup 是否已终止: {}", peStr, workerGroup.isTerminated() ? "是" : "否");
         } else {
-            log.info("{}-WorkerGroup: 未初始化", this.pe.toStr());
+            log.info("{}-WorkerGroup: 未初始化", peStr);
         }
     }
 
-    @Override
     public void printNettyBootstrapGroupStatus() {
-        log.info("===== {}-Bootstrap销毁状态检查 =====", this.getPe().toStr());
+        // 项目信息
+        String peStr = this.getPe().toStr();
+        log.info("===== {}-Bootstrap销毁状态检查 =====", peStr);
         this.printNettyBootstrapGroupStatusCommon();
     }
 
@@ -107,12 +206,55 @@ public class NettyServerBaseContext extends NettyProjectContext {
      * 打印Boostrap状态
      */
     private void printNettyBootstrapGroupStatusCommon() {
+        // 项目信息
+        String peStr = this.getPe().toStr();
         // BossGroup 状态
         if (bossGroup != null) {
-            log.info("{}-BossGroup 是否正在关闭: {}", this.pe.toStr(), bossGroup.isShuttingDown() ? "是" : "否");
-            log.info("{}-BossGroup 是否已终止: {}", this.pe.toStr(), bossGroup.isTerminated() ? "是" : "否");
+            log.info("{}-BossGroup 是否正在关闭: {}", peStr, bossGroup.isShuttingDown() ? "是" : "否");
+            log.info("{}-BossGroup 是否已终止: {}", peStr, bossGroup.isTerminated() ? "是" : "否");
         } else {
-            log.info("{}-BossGroup: 未初始化", this.pe.toStr());
+            log.info("{}-BossGroup: 未初始化", peStr);
         }
+    }
+
+    /**
+     * 传入WriteBo对象
+     * 放入通道链路
+     *
+     * @param writeBo
+     * @return
+     */
+    public <T extends NettyWriteBo> void writeAndFlush(T writeBo) {
+        ChannelHandlerContext ctx = this.variable.getCtx(writeBo.ipPortStr());
+        if (Objects.nonNull(ctx)) {
+            ctx.channel().writeAndFlush(writeBo);
+        } else {
+            log.error("{}-发送数据失败,链路不存在-{}", writeBo.ipPortStr(), writeBo.getMsg());
+            throw new NettyServiceException("发送数据失败,链路不存在");
+        }
+    }
+
+    /**
+     * 关闭连接
+     *
+     * @param ipPortAddress
+     */
+    public void closeConnect(IpPortAddress ipPortAddress) {
+        ChannelHandlerContext ctx = this.variable.getCtx(ipPortAddress.ipPort());
+        ctx.channel().close();
+    }
+
+    /**
+     * 通道状态
+     *
+     * @param ipPortAddress
+     * @return
+     */
+    public Boolean channelActive(IpPortAddress ipPortAddress) {
+        ChannelHandlerContext context = this.variable.getCtx(ipPortAddress.ipPort());
+        if (ObjectUtil.isNotNull(context)) {
+            return context.channel().isActive();
+        }
+        return false;
     }
 }

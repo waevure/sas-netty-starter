@@ -64,9 +64,9 @@ public abstract class NettyGuideAbstract {
         if (Objects.isNull(support)) {
             return null;
         }
-        NettyProjectContext mods = support.getMods();
+        NettyProjectContext mods = support.getNettyServerContext();
         // 客户端
-        if (NettyType.C_TCP == mods.nettyType) {
+        if (NettyType.C_TCP == mods.getNettyType()) {
             return (NettyTcpClientOperations) mods;
         }
 
@@ -87,9 +87,9 @@ public abstract class NettyGuideAbstract {
         if (Objects.isNull(support)) {
             return null;
         }
-        NettyProjectContext mods = support.getMods();
+        NettyProjectContext mods = support.getNettyServerContext();
         // 客户端
-        if (NettyType.C_HTTP == mods.nettyType) {
+        if (NettyType.C_HTTP == mods.getNettyType()) {
             return (NettyHttpClientOperations) mods;
         }
 
@@ -110,9 +110,9 @@ public abstract class NettyGuideAbstract {
         if (Objects.isNull(support)) {
             return null;
         }
-        NettyProjectContext mods = support.getMods();
+        NettyProjectContext mods = support.getNettyServerContext();
         // 服务端
-        if (NettyType.S_TCP == mods.nettyType) {
+        if (NettyType.S_TCP == mods.getNettyType()) {
             return (NettyTcpServerOperations) mods;
         }
 
@@ -134,9 +134,9 @@ public abstract class NettyGuideAbstract {
         if (Objects.isNull(support)) {
             return null;
         }
-        NettyProjectContext mods = support.getMods();
+        NettyProjectContext mods = support.getNettyServerContext();
         // 服务端
-        if (NettyType.UDP == mods.nettyType) {
+        if (NettyType.UDP == mods.getNettyType()) {
             return (NettyUdpOperations) mods;
         }
 
@@ -157,9 +157,9 @@ public abstract class NettyGuideAbstract {
         if (Objects.isNull(support)) {
             return null;
         }
-        NettyProjectContext mods = support.getMods();
+        NettyProjectContext mods = support.getNettyServerContext();
         // 客户端
-        if (NettyType.NO_NETWORK_CHANNEL == mods.nettyType) {
+        if (NettyType.NO_NETWORK_CHANNEL == mods.getNettyType()) {
             return (NettyNoNetworkOperations) mods;
         }
 

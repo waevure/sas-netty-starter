@@ -41,9 +41,9 @@ public class NettyTcpClientStart {
     /**
      * 启动tcp服务
      *
-     * @param pa 项目标识/服务标识
+     * @param pe 项目标识/服务标识
      */
-    public void startTcpClient(ProjectAbstract pa) throws Exception {
+    public void startTcpClient(ProjectAbstract pe) throws Exception {
         //创建链路信息
         NettyLink link = new NettyLink();
         link
@@ -60,11 +60,11 @@ public class NettyTcpClientStart {
                 .addWriteHandler(StringCusClientWriter.class);
 
         // 将projectInterface加入缓存
-        NettyTcpClientGuide.putProject(pa);
+        NettyTcpClientGuide.putProject(pe);
 
         //使用引导类创建netty
         NettyTcpClientGuide.initStart(
-                pa,
+                pe,
                 NettyType.C_TCP,
                 new ThreadPoolExecutor(1, 2, 5, TimeUnit.SECONDS, new ArrayBlockingQueue<>(10)),
                 link
@@ -77,9 +77,9 @@ public class NettyTcpClientStart {
         scheduler.scheduleAtFixedRate(() -> {
            try {
                System.out.println(Thread.currentThread().getName() + " 定时任务执行: " + System.currentTimeMillis());
-               NettyTcpClientOperations ability = NettyTcpServerGuide.tcpClientOperations(pa);
+               NettyTcpClientOperations ability = NettyTcpServerGuide.tcpClientOperations(pe);
                // 下发指令
-               ability.distributeInstruct(new IpPortAddress("127.0.0.1", 6677).ipPort(), new NettyWriteBo());
+               ability.distributeInstruct(new IpPortAddress("127.0.0.1", 6677).ipPort(), new NettyWriteBo(pe));
            }catch (Exception e){
                e.printStackTrace();
            }

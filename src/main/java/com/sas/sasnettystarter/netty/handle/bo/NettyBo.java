@@ -1,11 +1,24 @@
 package com.sas.sasnettystarter.netty.handle.bo;
 
+import com.sas.sasnettystarter.netty.ProjectAbstract;
+import lombok.Data;
+
 /**
  * @author WQY
  * @version 1.0
  * @date 2024/1/25 14:35
  */
+@Data
 public class NettyBo {
+
+    private ProjectAbstract pe;
+
+    public NettyBo() {
+    }
+
+    public NettyBo(ProjectAbstract pe) {
+        this.pe = pe;
+    }
 
     /**
      * 增加空格

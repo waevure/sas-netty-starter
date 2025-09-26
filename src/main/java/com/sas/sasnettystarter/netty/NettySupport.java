@@ -6,7 +6,7 @@ import com.sas.sasnettystarter.netty.exception.NettyServerException;
 import com.sas.sasnettystarter.netty.handle.*;
 import com.sas.sasnettystarter.netty.log.LogMerge;
 import com.sas.sasnettystarter.netty.log.LoggingHandler;
-import com.sas.sasnettystarter.netty.ops.core.NettyProjectContext;
+import com.sas.sasnettystarter.netty.ops.core.NettyServerBaseContext;
 import com.sas.sasnettystarter.netty.ops.embedded.NettyNoNetworkChannel;
 import com.sas.sasnettystarter.netty.ops.http.NettyHttpClient;
 import com.sas.sasnettystarter.netty.ops.http.NettyHttpServer;
@@ -23,6 +23,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ import java.util.function.Function;
  * @date 2023/12/3 09:41
  */
 @Slf4j
+@Getter
 public class NettySupport {
 
     /**
@@ -67,7 +69,7 @@ public class NettySupport {
      * NettyServerBaseContext：定义Netty的环境信息系。
      *
      */
-    private NettyProjectContext mods;
+    private NettyServerBaseContext nettyServerContext;
 
     public NettySupport(ProjectAbstract pe, NettyType nettyType, NettyLink nettyLink) {
         this.pe = pe;
@@ -87,8 +89,8 @@ public class NettySupport {
      *
      * @param mods
      */
-    public NettySupport initStartMods(NettyProjectContext mods) {
-        this.mods = mods;
+    public NettySupport initStartMods(NettyServerBaseContext mods) {
+        this.nettyServerContext = mods;
         return this;
     }
 
@@ -96,38 +98,23 @@ public class NettySupport {
      * 等待关闭
      */
     public void awaitSync() {
-        this.mods.awaitSync();
+        this.nettyServerContext.awaitCloseSync();
     }
 
     /**
      * 等待关闭
      */
     public void awaitSync(Integer port) {
-        this.mods.awaitSync(port);
+        this.nettyServerContext.awaitCloseSync(port);
     }
 
+    /**
+     * 构建器
+     *
+     * @return
+     */
     public Builder builder() {
         return new Builder();
-    }
-
-    public ThreadPoolExecutor getExecutor() {
-        return executor;
-    }
-
-    public NettyLink getNettyLink() {
-        return nettyLink;
-    }
-
-    public ProjectAbstract getPe() {
-        return pe;
-    }
-
-    public NettyType getNettyType() {
-        return nettyType;
-    }
-
-    public NettyProjectContext getMods() {
-        return mods;
     }
 
     /**
@@ -154,10 +141,10 @@ public class NettySupport {
         builder.addStickyPackageUnpacking(this.getNettyLink().getDecoder());
 
         //对默认处理器进行配置
-        if (this.getNettyLink().getIsOpenDefault()) {
-            if (Objects.nonNull(this.getNettyLink().getDefaultFunctionRead())) {
-                builder.openDefaultChannelStatus(this.getNettyLink().getDefaultFunctionRead());
-            }
+        if (this.getNettyLink().getOpenDefaultChannelStatusManager()) {
+            builder.openDefaultChannelStatus(this.getNettyLink().getDefaultFunctionRead());
+            builder.addOnlineUserLogic(this.getNettyLink().getOnlineUserLogic());
+            builder.addOfflineUserLogic(this.getNettyLink().getOfflineUserLogic());
         }
 
         // 添加Pipeline前的处理器
@@ -185,7 +172,7 @@ public class NettySupport {
         }
 
         // 启动netty
-        NettyProjectContext mods;
+        NettyServerBaseContext mods;
         if (NettyType.C_TCP == this.getNettyType()) {
             mods = builder.startTcpClient(this.getPe());
         } else if (NettyType.S_TCP == this.getNettyType()) {
@@ -202,7 +189,7 @@ public class NettySupport {
             throw new NettyServerException("未匹配到服务类型");
         }
         // 添加mods
-        this.mods = mods;
+        this.nettyServerContext = mods;
         return this;
     }
 
@@ -211,7 +198,7 @@ public class NettySupport {
      */
     public void destroy() throws Exception {
         // 销毁mod
-        this.mods.destroyServer();
+        this.nettyServerContext.destroyServer();
         // 销毁线程池
         if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
             executor.shutdownNow(); // 强制中断
@@ -220,6 +207,9 @@ public class NettySupport {
         this.printExecutorStatus();
     }
 
+    /**
+     * 打印线程池信息
+     */
     public void printExecutorStatus() {
         // 外部线程池状态
         if (executor != null) {
@@ -260,6 +250,17 @@ public class NettySupport {
          * 默认处理器读数据回调
          */
         private TiFunction<ChannelHandlerContext, Object, ProjectAbstract, Object> defaultChannelReadFunc;
+        /**
+         * 上线逻辑处理器
+         * openDefaultChannelStatusManager为true生效
+         */
+        private Class<? extends LogicHandler> onlineUserLogic;
+        /**
+         * 离线逻辑处理器
+         * openDefaultChannelStatusManager为true生效
+         */
+        private Class<? extends LogicHandler> offlineUserLogic;
+
 
         /**
          * 日志
@@ -335,6 +336,36 @@ public class NettySupport {
             return this;
         }
 
+        /**
+         * 添加上线处理器
+         *
+         * @param onlineLogic
+         * @return
+         */
+        public Builder addOnlineUserLogic(Class<? extends LogicHandler> onlineLogic) {
+            if (Objects.isNull(onlineLogic)) {
+                this.onlineUserLogic = NettyClientOnlineHandler.class;
+                return this;
+            }
+            this.onlineUserLogic = onlineLogic;
+            return this;
+        }
+
+        /**
+         * 添加离线处理器
+         *
+         * @param offlineLogic
+         * @return
+         */
+        public Builder addOfflineUserLogic(Class<? extends LogicHandler> offlineLogic) {
+            if (Objects.isNull(offlineLogic)) {
+                this.offlineUserLogic = NettyClientOfflineHandler.class;
+                return this;
+            }
+            this.offlineUserLogic = offlineLogic;
+            return this;
+        }
+
 
         /**
          * 添加成功回调
@@ -394,7 +425,7 @@ public class NettySupport {
          *
          * @return
          */
-        public NettyProjectContext startTcpClient(ProjectAbstract pe) {
+        public NettyServerBaseContext startTcpClient(ProjectAbstract pe) {
             /**配置客户端 NIO 线程组/池*/
             EventLoopGroup group = new NioEventLoopGroup();
             /**Bootstrap 与 ServerBootstrap 都继承(extends)于 AbstractBootstrap
@@ -414,7 +445,7 @@ public class NettySupport {
          *
          * @return
          */
-        public NettyProjectContext startHttpClient(ProjectAbstract pe) {
+        public NettyServerBaseContext startHttpClient(ProjectAbstract pe) {
             EventLoopGroup group = new NioEventLoopGroup();
             Bootstrap b = new Bootstrap();
             b.group(group).channel(NioSocketChannel.class);
@@ -428,7 +459,7 @@ public class NettySupport {
          *
          * @return
          */
-        public NettyProjectContext startHttpServer(ProjectAbstract pe) {
+        public NettyServerBaseContext startHttpServer(ProjectAbstract pe) {
             // boss 负责接收连接，worker 负责处理 IO
             EventLoopGroup bossGroup = new NioEventLoopGroup(1);
             EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -445,7 +476,7 @@ public class NettySupport {
          *
          * @return
          */
-        public NettyProjectContext startTcpServer(ProjectAbstract pe) {
+        public NettyServerBaseContext startTcpServer(ProjectAbstract pe) {
             // 构建boss-worker
             EventLoopGroup bossGroup = new NioEventLoopGroup();
             EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -462,7 +493,7 @@ public class NettySupport {
          *
          * @return
          */
-        public NettyProjectContext startUdpServer(ProjectAbstract pe) {
+        public NettyServerBaseContext startUdpServer(ProjectAbstract pe) {
             // 构建boos-worker
             EventLoopGroup group = new NioEventLoopGroup();
             // 创建引导类
@@ -479,13 +510,13 @@ public class NettySupport {
          *
          * @return
          */
-        public NettyProjectContext buildNoNetworkChannel(ProjectAbstract pe) throws Exception {
+        public NettyServerBaseContext buildNoNetworkChannel(ProjectAbstract pe) throws Exception {
             // 创建一个嵌入式 Channel
             EmbeddedChannel channel = new EmbeddedChannel();
             // 初始化channel责任链
             this.initChannelSupport(pe, channel);
             // 返回mods
-            return new NettyNoNetworkChannel(channel, NettyType.NO_NETWORK_CHANNEL);
+            return new NettyNoNetworkChannel(channel, pe, NettyType.NO_NETWORK_CHANNEL);
         }
 
         /**
@@ -508,7 +539,9 @@ public class NettySupport {
             // beforePipelines在除日志之前执行
             if (Objects.nonNull(beforePipelines)) {
                 // 执行beforePipelines
-                beforePipelines.stream().forEach(b -> b.apply(channel));
+                for (Function<Channel, Boolean> f : beforePipelines) {
+                    f.apply(channel);
+                }
             }
             //拆包次之
             if (ObjectUtil.isNotNull(unpacking)) {
@@ -516,8 +549,13 @@ public class NettySupport {
             }
             // 默认状态管理器是否启用
             if (Objects.nonNull(defaultChannelStatus) && defaultChannelStatus) {
-                channel.pipeline().addLast(new ChannelStatusHandler(defaultChannelReadFunc, mods.variable(), pe));
+                channel.pipeline().addLast(new ChannelStatusManager(defaultChannelReadFunc, nettyServerContext.getVariable(), pe));
+                // 添加上线处理器
+                channel.pipeline().addLast(this.onlineUserLogic.getDeclaredConstructor().newInstance());
+                // 添加离线处理器
+                channel.pipeline().addLast(this.offlineUserLogic.getDeclaredConstructor().newInstance());
             }
+
             //如果为null则创建默认的
             if (CollectionUtil.isEmpty(pipelines)) {
                 channel.pipeline().addLast(new DefaultServerHandler());
@@ -527,7 +565,7 @@ public class NettySupport {
             for (Class<? extends ChannelHandler> handler : pipelines) {
                 try {
                     //创建管道处理实例
-                    channel.pipeline().addLast(handler.newInstance());
+                    channel.pipeline().addLast(handler.getDeclaredConstructor().newInstance());
                 } catch (InstantiationException e) {
                     throw new RuntimeException(e);
                 } catch (IllegalAccessException e) {

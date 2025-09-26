@@ -37,9 +37,21 @@ public class NettyLink {
     private Unpacking decoder;
 
     /**
-     * 是否启用默认处理器
+     * 是否启用默认channel状态处理器
      */
-    private Boolean isOpenDefault = false;
+    private Boolean openDefaultChannelStatusManager = false;
+
+    /**
+     * 上线逻辑处理器
+     * openDefaultChannelStatusManager为true生效
+     */
+    private Class<? extends LogicHandler> onlineUserLogic;
+
+    /**
+     * 离线逻辑处理器
+     * openDefaultChannelStatusManager为true生效
+     */
+    private Class<? extends LogicHandler> offlineUserLogic;
 
     /**
      * 设置日志
@@ -47,7 +59,7 @@ public class NettyLink {
     private LogMerge logMerge = null;
 
     /**
-     * 如果isOpenDefault true该参数才可能生效，该参数可以为空
+     * 如果openDefaultChannelStatusManager true该参数才可能生效，该参数可以为空
      */
     private TiFunction<ChannelHandlerContext, Object, ProjectAbstract, Object> defaultFunctionRead;
 
@@ -59,7 +71,7 @@ public class NettyLink {
     /**
      * Pipelines前的处理器，在日志处理器之后构建，也可以在这里面放所有的逻辑处理器
      */
-    private List<Function<Channel,Boolean>> beforePipelines = new ArrayList<>();
+    private List<Function<Channel, Boolean>> beforePipelines = new ArrayList<>();
 
     /**
      * 指令分发，状态管理器
@@ -124,8 +136,8 @@ public class NettyLink {
      * @param function
      * @return
      */
-    public <P,R> NettyLink openDefaultChannelStatus(TiFunction<ChannelHandlerContext, P, ProjectAbstract, R> function) {
-        this.isOpenDefault = true;
+    public <P, R> NettyLink openDefaultChannelStatus(TiFunction<ChannelHandlerContext, P, ProjectAbstract, R> function) {
+        this.openDefaultChannelStatusManager = true;
         this.defaultFunctionRead = (TiFunction<ChannelHandlerContext, Object, ProjectAbstract, Object>) function;
         return this;
     }
@@ -135,17 +147,40 @@ public class NettyLink {
      *
      * @return
      */
-    public <P,R> NettyLink openDefaultChannelStatus() {
-        this.isOpenDefault = true;
+    public NettyLink openDefaultChannelStatus() {
+        this.openDefaultChannelStatusManager = true;
+        return this;
+    }
+
+    /**
+     * 添加上线处理器
+     *
+     * @param onlineLogic
+     * @return
+     */
+    public NettyLink addOnlineUserLogic(Class<? extends LogicHandler> onlineLogic) {
+        this.onlineUserLogic = onlineLogic;
+        return this;
+    }
+
+    /**
+     * 添加离线处理器
+     *
+     * @param offlineLogic
+     * @return
+     */
+    public NettyLink addOfflineUserLogic(Class<? extends LogicHandler> offlineLogic) {
+        this.offlineUserLogic = offlineLogic;
         return this;
     }
 
     /**
      * 添加Pipeline前的处理器
+     *
      * @param function
      * @return
      */
-    public NettyLink addBeforePipeline(Function<Channel,Boolean> function) {
+    public NettyLink addBeforePipeline(Function<Channel, Boolean> function) {
         this.beforePipelines.add(function);
         return this;
     }
@@ -193,10 +228,11 @@ public class NettyLink {
 
     /**
      * 添加成功回调
+     *
      * @param function
      * @return
      */
-    public NettyLink addStartSuccessCallback(Function<Channel, Boolean> function){
+    public NettyLink addStartSuccessCallback(Function<Channel, Boolean> function) {
         this.startSuccessCallback = function;
         return this;
     }
