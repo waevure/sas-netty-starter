@@ -1,5 +1,6 @@
 package udp.client;
 
+import com.sas.sasnettystarter.netty.NetAddress;
 import com.sas.sasnettystarter.netty.NettyLink;
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
@@ -74,7 +75,7 @@ public class NettyUdpClientStart {
                 System.out.println(Thread.currentThread().getName() + " 定时任务执行: " + System.currentTimeMillis());
                 NettyUdpOperations ability = NettyUdpClientGuide.udpServerOperations(pa);
                 // 下发指令
-                ability.distributeInstruct(new NettyWriteBo(pa, "127.0.0.1", 6677));
+                ability.distributeInstruct(new NettyWriteBo(pa, new NetAddress("127.0.0.1", 6677)));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -87,7 +88,7 @@ public class NettyUdpClientStart {
             NettyUdpClientProject pe = new NettyUdpClientProject("UDP客户端", "10001");
             serverStart.startUdpClient(pe);
             Thread.sleep(3000);
-            NettyUdpClientGuide.udpServerOperations(pe).distributeInstruct(new NettyWriteBo(pe, "127.0.0.1", 6677));
+            NettyUdpClientGuide.udpServerOperations(pe).distributeInstruct(new NettyWriteBo(pe, new NetAddress("127.0.0.1", 6677)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

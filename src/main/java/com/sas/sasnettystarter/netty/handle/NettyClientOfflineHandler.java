@@ -1,6 +1,6 @@
 package com.sas.sasnettystarter.netty.handle;
 
-import com.sas.sasnettystarter.netty.IpPortAddress;
+import com.sas.sasnettystarter.netty.NetAddress;
 import com.sas.sasnettystarter.netty.handle.bo.NettyOfflineBo;
 import com.sas.sasnettystarter.netty.utils.GsonUtils;
 import io.netty.channel.ChannelHandlerContext;
@@ -19,7 +19,7 @@ public class NettyClientOfflineHandler extends LogicHandler {
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof NettyOfflineBo offline) {
-            log.info("{}-{}-下线: {}", offline.getPe().toStr(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort(), GsonUtils.toString(offline));
+            log.info("{}-{}-下线: {}", offline.getPe().toStr(), NetAddress.nettyRemoteAddress(ctx.channel()).ipPort(), GsonUtils.toString(offline));
         } else {
             super.userEventTriggered(ctx, evt);
         }

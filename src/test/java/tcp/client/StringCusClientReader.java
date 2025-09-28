@@ -1,11 +1,9 @@
 package tcp.client;
 
-import com.sas.sasnettystarter.netty.IpPortAddress;
+import com.sas.sasnettystarter.netty.NetAddress;
 import com.sas.sasnettystarter.netty.handle.ReadHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import tcp.server.NettyTcpServerGuide;
-import tcp.server.NettyTcpServerProject;
 
 /**
  * @ClassName: StringCusReader
@@ -17,7 +15,7 @@ import tcp.server.NettyTcpServerProject;
 public class StringCusClientReader extends ReadHandler<ByteBuf> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-        String ipPort = IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort();
+        String ipPort = NetAddress.nettyRemoteAddress(ctx.channel()).ipPort();
         // ByteBuf -> byte[]
         byte[] bytes = new byte[msg.readableBytes()];
         msg.readBytes(bytes);

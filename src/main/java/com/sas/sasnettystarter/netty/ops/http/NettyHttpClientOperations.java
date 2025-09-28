@@ -1,6 +1,6 @@
 package com.sas.sasnettystarter.netty.ops.http;
 
-import com.sas.sasnettystarter.netty.IpPortAddress;
+import com.sas.sasnettystarter.netty.NetAddress;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.HttpHeaders;
 
@@ -19,22 +19,22 @@ public interface NettyHttpClientOperations {
     /**
      * 链接
      *
-     * @param ipPortAddress
+     * @param netAddress
      * @return
      */
-    Boolean connectSync(IpPortAddress ipPortAddress);
+    Boolean connectSync(NetAddress netAddress);
 
     /**
      * 发送post请求
      *
      * @param path
      * @param data
-     * @param ipPortAddress
+     * @param netAddress
      * @param headerFunc
      * @param callback
      * @param <T>
      */
-    <T> void sendPostBody(String path, T data, IpPortAddress ipPortAddress,
+    <T> void sendPostBody(String path, T data, NetAddress netAddress,
                           Function<HttpHeaders, Boolean> headerFunc,
                           Function<ChannelFuture, Boolean> callback);
 
@@ -44,9 +44,9 @@ public interface NettyHttpClientOperations {
      *
      * @param path
      * @param data
-     * @param ipPortAddress
+     * @param netAddress
      * @param headerFunc
      */
-    void sendGetRequest(String path, Map<String, ?> data, IpPortAddress ipPortAddress, Function<HttpHeaders, Boolean> headerFunc);
+    void sendGetRequest(String path, Map<String, ?> data, NetAddress netAddress, Function<HttpHeaders, Boolean> headerFunc);
 
 }

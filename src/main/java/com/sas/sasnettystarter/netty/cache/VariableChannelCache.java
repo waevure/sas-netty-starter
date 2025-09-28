@@ -1,6 +1,6 @@
 package com.sas.sasnettystarter.netty.cache;
 
-import com.sas.sasnettystarter.netty.IpPortAddress;
+import com.sas.sasnettystarter.netty.NetAddress;
 import com.sas.sasnettystarter.netty.PeBo;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 import io.netty.channel.ChannelHandlerContext;
@@ -90,7 +90,7 @@ public class VariableChannelCache extends PeBo {
         for (ChannelHandlerContext ctx : this.MAP_CHANNEL.values()) {
             if (ctx.channel().isOpen()) {
                 ctx.close().syncUninterruptibly();
-                log.info("{}[{}]销毁-通道关闭", pe.toStr(), IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort());
+                log.info("{}[{}]销毁-通道关闭", pe.toStr(), NetAddress.nettyRemoteAddress(ctx.channel()).ipPort());
             }
         }
         // 清理map

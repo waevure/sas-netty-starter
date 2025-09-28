@@ -1,6 +1,6 @@
 package com.sas.sasnettystarter.netty.ops.tcp;
 
-import com.sas.sasnettystarter.netty.IpPortAddress;
+import com.sas.sasnettystarter.netty.NetAddress;
 import com.sas.sasnettystarter.netty.NettyGuideAbstract;
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
@@ -184,7 +184,7 @@ public class NettyTcpServer extends NettyServerBaseContext implements NettyTcpSe
     public void distributeInstruct(ChannelHandlerContext ctx, NettyWriteBo writeData) {
         Assert.notNull(ctx,"ctx为空,不可下发");
         // 解析IP:PORT
-        IpPortAddress address = IpPortAddress.nettyRemoteAddress(ctx.channel());
+        NetAddress address = NetAddress.nettyRemoteAddress(ctx.channel());
         if (Objects.isNull(ctx)) {
             throw new NettyLinkException(String.format("%s-TCP-服务端-链路未注册:%s", this.getPe().toStr(), address.ipPort()));
         }

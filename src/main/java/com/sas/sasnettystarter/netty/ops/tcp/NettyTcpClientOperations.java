@@ -1,6 +1,6 @@
 package com.sas.sasnettystarter.netty.ops.tcp;
 
-import com.sas.sasnettystarter.netty.IpPortAddress;
+import com.sas.sasnettystarter.netty.NetAddress;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
 
 /**
@@ -14,10 +14,10 @@ public interface NettyTcpClientOperations {
 
     /**
      * 同步连接
-     * @param ipPortAddress
+     * @param netAddress
      * @return
      */
-    Boolean connectSync(IpPortAddress ipPortAddress);
+    Boolean connectSync(NetAddress netAddress);
 
     /**
      * 下发指令

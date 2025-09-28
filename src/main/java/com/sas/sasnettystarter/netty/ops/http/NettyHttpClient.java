@@ -1,7 +1,7 @@
 package com.sas.sasnettystarter.netty.ops.http;
 
 import cn.hutool.http.HttpUtil;
-import com.sas.sasnettystarter.netty.IpPortAddress;
+import com.sas.sasnettystarter.netty.NetAddress;
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.constant.NettyConstant;
@@ -73,25 +73,25 @@ public class NettyHttpClient extends NettyServerBaseContext implements NettyHttp
 
 
     @Override
-    public Boolean connectSync(IpPortAddress ipPortAddress) {
+    public Boolean connectSync(NetAddress netAddress) {
         // 进行连接
-        ChannelFuture future = this.getBootstrap().connect(ipPortAddress.getIp(), ipPortAddress.getPort());
+        ChannelFuture future = this.getBootstrap().connect(netAddress.getIp(), netAddress.getPort());
         // 等待
         try {
             future.sync();
             if (future.isSuccess()) {
-                log.info("[{}]-{}-HTTP-客户端-同步连接成功", this.getPe().toStr(), ipPortAddress.ipPort());
+                log.info("[{}]-{}-HTTP-客户端-同步连接成功", this.getPe().toStr(), netAddress.ipPort());
                 // ⭐ 监听关闭事件，移除缓存
                 future.channel().closeFuture().addListener((ChannelFutureListener) closeFuture -> {
-                    log.info("[{}]-{}-HTTP-客户端-连接已关闭，移除缓存", this.getPe().toStr(), ipPortAddress.ipPort());
-                    this.getChannelFutures().remove(ipPortAddress.ipPort());
+                    log.info("[{}]-{}-HTTP-客户端-连接已关闭，移除缓存", this.getPe().toStr(), netAddress.ipPort());
+                    this.getChannelFutures().remove(netAddress.ipPort());
                 });
-                this.getChannelFutures().put(ipPortAddress.ipPort(), future);
+                this.getChannelFutures().put(netAddress.ipPort(), future);
                 return true;
             } else {
                 future.cause().printStackTrace();
-                log.info("[{}]-{}-HTTP-客户端-同步连接失败", this.getPe().toStr(), ipPortAddress.ipPort());
-                this.getChannelFutures().put(ipPortAddress.ipPort(), future);
+                log.info("[{}]-{}-HTTP-客户端-同步连接失败", this.getPe().toStr(), netAddress.ipPort());
+                this.getChannelFutures().put(netAddress.ipPort(), future);
                 return false;
             }
         } catch (Exception e) {
@@ -107,13 +107,13 @@ public class NettyHttpClient extends NettyServerBaseContext implements NettyHttp
      * @param data 消息体
      */
     @Override
-    public <T> void sendPostBody(String path, T data, IpPortAddress ipPortAddress,
+    public <T> void sendPostBody(String path, T data, NetAddress netAddress,
                                  Function<HttpHeaders, Boolean> headerFunc,
                                  Function<ChannelFuture, Boolean> callback) {
         // 获取请求地址
-        ChannelHandlerContext ctx = this.getVariableChannelCache().getCtx(ipPortAddress.ipPort());
+        ChannelHandlerContext ctx = this.getVariableChannelCache().getCtx(netAddress.ipPort());
         if (Objects.isNull(ctx) || !ctx.channel().isActive()) {
-            log.error("连接不存在:{}", ipPortAddress.ipPort());
+            log.error("连接不存在:{}", netAddress.ipPort());
             return;
         }
         // 创建 POST 请求
@@ -125,7 +125,7 @@ public class NettyHttpClient extends NettyServerBaseContext implements NettyHttp
         );
         request.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json");
         request.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, request.content().readableBytes());
-        request.headers().set(HttpHeaderNames.HOST, ipPortAddress.getIp());
+        request.headers().set(HttpHeaderNames.HOST, netAddress.getIp());
         // 设置消息头
         headerFunc.apply(request.headers());
 
@@ -147,11 +147,11 @@ public class NettyHttpClient extends NettyServerBaseContext implements NettyHttp
      * @param data 消息体（GET 请求通常没有消息体，数据通过 URL 参数传递）
      */
     @Override
-    public void sendGetRequest(String path, Map<String, ?> data, IpPortAddress ipPortAddress, Function<HttpHeaders, Boolean> headerFunc) {
+    public void sendGetRequest(String path, Map<String, ?> data, NetAddress netAddress, Function<HttpHeaders, Boolean> headerFunc) {
         // 获取请求地址
-        ChannelFuture cf = this.getChannelFutures().get(ipPortAddress.ipPort());
+        ChannelFuture cf = this.getChannelFutures().get(netAddress.ipPort());
         if (Objects.isNull(cf) || !cf.channel().isActive()) {
-            log.error("连接不存在:{}", ipPortAddress.ipPort());
+            log.error("连接不存在:{}", netAddress.ipPort());
             return;
         }
 
@@ -162,7 +162,7 @@ public class NettyHttpClient extends NettyServerBaseContext implements NettyHttp
                 Unpooled.EMPTY_BUFFER);
 
         // 设置请求头
-        request.headers().set(HttpHeaderNames.HOST, ipPortAddress.getIp());
+        request.headers().set(HttpHeaderNames.HOST, netAddress.getIp());
         request.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
         request.headers().set(HttpHeaderNames.ACCEPT_ENCODING, HttpHeaderValues.GZIP);
 

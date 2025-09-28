@@ -1,6 +1,6 @@
 package http.client;
 
-import com.sas.sasnettystarter.netty.IpPortAddress;
+import com.sas.sasnettystarter.netty.NetAddress;
 import com.sas.sasnettystarter.netty.NettyLink;
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
@@ -88,7 +88,7 @@ public class NettyHttpClientStart {
             // 获取客户端能力
             NettyHttpClientOperations ability = NettyHttpClientGuide.httpClientOperations(pe);
             // 连接
-            ability.connectSync(new IpPortAddress("127.0.0.1", 8877));
+            ability.connectSync(new NetAddress("127.0.0.1", 8877));
             Thread.sleep(5000);
             Map<String, String> tm = new HashMap<>();
             tm.put("key", "value");
@@ -97,7 +97,7 @@ public class NettyHttpClientStart {
             NettyHttpClientGuide.httpClientOperations(pe).sendGetRequest(
                     "/test/ww",
                     tm,
-                    new IpPortAddress("127.0.0.1", 8877),
+                    new NetAddress("127.0.0.1", 8877),
                     null
             );
         } catch (Exception e) {

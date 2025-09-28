@@ -55,9 +55,9 @@ public class NettyUdpServer extends NettyServerBaseContext implements NettyUdpOp
     @Override
     public void awaitCloseSync(Integer port) {
         try {
-            log.info("[{}]-UDP-准备启动中:{}", this.getPe().toStr(), port);
+            log.info("{}-UDP-准备启动中:{}", this.getPe().toStr(), port);
             ChannelFuture f = this.getBootstrap().bind(port).sync();
-            log.info("[{}]-UDP-启动完成:{}", this.getPe().toStr(), port);
+            log.info("{}-UDP-启动完成:{}", this.getPe().toStr(), port);
             this.setChannelFuture(f);;
             // 进行回调
             if (Objects.nonNull(this.getStartSuccessCallback())) {

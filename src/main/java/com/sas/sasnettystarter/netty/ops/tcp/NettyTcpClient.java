@@ -1,6 +1,6 @@
 package com.sas.sasnettystarter.netty.ops.tcp;
 
-import com.sas.sasnettystarter.netty.IpPortAddress;
+import com.sas.sasnettystarter.netty.NetAddress;
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.constant.NettyConstant;
@@ -55,24 +55,24 @@ public class NettyTcpClient extends NettyServerBaseContext implements NettyTcpCl
     }
 
     @Override
-    public Boolean connectSync(IpPortAddress ipPortAddress) {
+    public Boolean connectSync(NetAddress netAddress) {
         // 进行连接
-        ChannelFuture future = this.getBootstrap().connect(ipPortAddress.getIp(), ipPortAddress.getPort());
+        ChannelFuture future = this.getBootstrap().connect(netAddress.getIp(), netAddress.getPort());
         // 等待
         try {
             future.sync();
             if (future.isSuccess()) {
-                log.info("[{}]-{}-TCP-客户端-同步连接成功", this.getPe().toStr(), ipPortAddress.ipPort());
+                log.info("[{}]-{}-TCP-客户端-同步连接成功", this.getPe().toStr(), netAddress.ipPort());
                 // ⭐ 监听关闭事件，移除缓存
                 future.channel().closeFuture().addListener((ChannelFutureListener) closeFuture -> {
-                    log.info("[{}]-{}-TCP-客户端-连接已关闭，移除缓存", this.getPe().toStr(), ipPortAddress.ipPort());
-                    this.getChannelFutures().remove(ipPortAddress.ipPort());
+                    log.info("[{}]-{}-TCP-客户端-连接已关闭，移除缓存", this.getPe().toStr(), netAddress.ipPort());
+                    this.getChannelFutures().remove(netAddress.ipPort());
                 });
-                this.getChannelFutures().put(ipPortAddress.ipPort(), future);
+                this.getChannelFutures().put(netAddress.ipPort(), future);
                 return true;
             } else {
                 future.cause().printStackTrace();
-                log.info("[{}]-{}-TCP-客户端-同步连接失败", this.getPe().toStr(), ipPortAddress.ipPort());
+                log.info("[{}]-{}-TCP-客户端-同步连接失败", this.getPe().toStr(), netAddress.ipPort());
                 return false;
             }
         } catch (Exception e) {

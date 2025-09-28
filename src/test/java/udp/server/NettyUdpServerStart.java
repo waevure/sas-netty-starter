@@ -1,5 +1,6 @@
 package udp.server;
 
+import com.sas.sasnettystarter.netty.NetAddress;
 import com.sas.sasnettystarter.netty.NettyLink;
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
@@ -87,8 +88,8 @@ public class NettyUdpServerStart {
         try {
             NettyUdpServerProject pe = new NettyUdpServerProject("UDP客户端", "10001");
             serverStart.startUdpServer(pe);
-            Thread.sleep(3000);
-            NettyUdpServerGuide.udpServerOperations(pe).distributeInstruct(new NettyWriteBo(pe, "127.0.0.1", 6677));
+//            Thread.sleep(3000);
+//            NettyUdpServerGuide.udpServerOperations(pe).distributeInstruct(new NettyWriteBo(pe, new NetAddress("127.0.0.1", 6677)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

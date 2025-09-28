@@ -1,5 +1,6 @@
 package com.sas.sasnettystarter.netty.handle.bo;
 
+import com.sas.sasnettystarter.netty.NetAddress;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 
 /**
@@ -11,9 +12,7 @@ import com.sas.sasnettystarter.netty.ProjectAbstract;
  */
 public class NettyWriteBo extends NettyBo {
 
-    public String ip;
-
-    public Integer port;
+    private NetAddress netAddress;
 
     public String msg;
 
@@ -21,16 +20,13 @@ public class NettyWriteBo extends NettyBo {
         super(pe);
     }
 
-    public NettyWriteBo(ProjectAbstract pe, String ip, Integer port) {
+    public NettyWriteBo(ProjectAbstract pe, NetAddress netAddress) {
         super(pe);
-        this.ip = ip;
-        this.port = port;
     }
 
-    public NettyWriteBo(ProjectAbstract pe, String ip, Integer port, String msg) {
+    public NettyWriteBo(ProjectAbstract pe, NetAddress netAddress, String msg) {
         super(pe);
-        this.ip = ip;
-        this.port = port;
+        this.netAddress = netAddress;
         this.msg = msg;
     }
 
@@ -40,7 +36,7 @@ public class NettyWriteBo extends NettyBo {
      * @return
      */
     public String ipPortStr() {
-        return this.ip + ":" + this.port;
+        return netAddress.ipPort();
     }
 
     public void setMsg(String msg) {
@@ -52,12 +48,14 @@ public class NettyWriteBo extends NettyBo {
     }
 
     public String getIp() {
-        return this.ip;
+        return this.getNetAddress().getIp();
     }
 
     public Integer getPort() {
-        return this.port;
+        return this.getNetAddress().getPort();
     }
 
-
+    public NetAddress getNetAddress() {
+        return netAddress;
+    }
 }

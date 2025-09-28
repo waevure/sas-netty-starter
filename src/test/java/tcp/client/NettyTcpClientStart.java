@@ -1,6 +1,6 @@
 package tcp.client;
 
-import com.sas.sasnettystarter.netty.IpPortAddress;
+import com.sas.sasnettystarter.netty.NetAddress;
 import com.sas.sasnettystarter.netty.NettyLink;
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
@@ -79,7 +79,7 @@ public class NettyTcpClientStart {
                System.out.println(Thread.currentThread().getName() + " 定时任务执行: " + System.currentTimeMillis());
                NettyTcpClientOperations ability = NettyTcpServerGuide.tcpClientOperations(pe);
                // 下发指令
-               ability.distributeInstruct(new IpPortAddress("127.0.0.1", 6677).ipPort(), new NettyWriteBo(pe));
+               ability.distributeInstruct(new NetAddress("127.0.0.1", 6677).ipPort(), new NettyWriteBo(pe));
            }catch (Exception e){
                e.printStackTrace();
            }
@@ -93,7 +93,7 @@ public class NettyTcpClientStart {
             serverStart.startTcpClient(pe);
             Thread.sleep(1000);
             // 连接server
-            NettyTcpClientGuide.tcpClientOperations(pe).connectSync(new IpPortAddress("127.0.0.1", 6677));
+            NettyTcpClientGuide.tcpClientOperations(pe).connectSync(new NetAddress("127.0.0.1", 6677));
             // 1分钟销毁
             Thread.sleep(1000 * 60);
             // 销毁项目

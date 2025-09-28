@@ -1,9 +1,6 @@
 package http.client;
 
-import com.sas.sasnettystarter.netty.IpPortAddress;
 import com.sas.sasnettystarter.netty.handle.ReadHandler;
-import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
-import com.sas.sasnettystarter.netty.utils.GsonUtils;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpResponse;
 

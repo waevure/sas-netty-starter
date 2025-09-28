@@ -18,7 +18,7 @@ import java.util.Objects;
 @Slf4j
 @Data
 @AllArgsConstructor
-public class IpPortAddress {
+public class NetAddress {
 
     private String ip;
 
@@ -49,19 +49,19 @@ public class IpPortAddress {
      * @param channel
      * @return
      */
-    public static IpPortAddress nettyRemoteAddress(Channel channel) {
+    public static NetAddress nettyRemoteAddress(Channel channel) {
         // 获取远程地址信息
         SocketAddress socketAddress = channel.remoteAddress();
         if (Objects.nonNull(socketAddress)) {
             // 是否为无网络的channel
             if (socketAddress.toString().equals("embedded")) {
-                return new IpPortAddress(socketAddress.toString(), null);
+                return new NetAddress(socketAddress.toString(), null);
             }
             InetSocketAddress remoteAddr = (InetSocketAddress) socketAddress;
             //返回
-            return new IpPortAddress(remoteAddr.getHostName(), remoteAddr.getPort());
+            return new NetAddress(remoteAddr.getHostName(), remoteAddr.getPort());
         }
-        return new IpPortAddress("connect failed", -1);
+        return new NetAddress("connect failed", -1);
     }
 
     /**

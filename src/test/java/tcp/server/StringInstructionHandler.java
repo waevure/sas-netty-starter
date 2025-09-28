@@ -1,6 +1,6 @@
 package tcp.server;
 
-import com.sas.sasnettystarter.netty.IpPortAddress;
+import com.sas.sasnettystarter.netty.NetAddress;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.TiFunction;
 import io.netty.buffer.ByteBuf;
@@ -19,7 +19,7 @@ public class StringInstructionHandler implements TiFunction<ChannelHandlerContex
 
     @Override
     public Boolean apply(ChannelHandlerContext ctx, ByteBuf msg, ProjectAbstract pa) {
-        String ipPort = IpPortAddress.nettyRemoteAddress(ctx.channel()).ipPort();
+        String ipPort = NetAddress.nettyRemoteAddress(ctx.channel()).ipPort();
         // 添加缓存
         NettyTcpServerGuide.tcpServerOperations(new NettyTcpServerProject("TCP服务端", "10001")).putCtx(ipPort, ctx);
         // ByteBuf -> byte[]

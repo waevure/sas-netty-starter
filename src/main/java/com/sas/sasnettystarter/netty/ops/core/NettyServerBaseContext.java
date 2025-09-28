@@ -1,7 +1,7 @@
 package com.sas.sasnettystarter.netty.ops.core;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.sas.sasnettystarter.netty.IpPortAddress;
+import com.sas.sasnettystarter.netty.NetAddress;
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.cache.VariableChannelCache;
@@ -236,21 +236,21 @@ public abstract class NettyServerBaseContext extends NettyProjectContext {
     /**
      * 关闭连接
      *
-     * @param ipPortAddress
+     * @param netAddress
      */
-    public void closeConnect(IpPortAddress ipPortAddress) {
-        ChannelHandlerContext ctx = this.variableChannelCache.getCtx(ipPortAddress.ipPort());
+    public void closeConnect(NetAddress netAddress) {
+        ChannelHandlerContext ctx = this.variableChannelCache.getCtx(netAddress.ipPort());
         ctx.channel().close();
     }
 
     /**
      * 通道状态
      *
-     * @param ipPortAddress
+     * @param netAddress
      * @return
      */
-    public Boolean channelActive(IpPortAddress ipPortAddress) {
-        ChannelHandlerContext context = this.variableChannelCache.getCtx(ipPortAddress.ipPort());
+    public Boolean channelActive(NetAddress netAddress) {
+        ChannelHandlerContext context = this.variableChannelCache.getCtx(netAddress.ipPort());
         if (ObjectUtil.isNotNull(context)) {
             return context.channel().isActive();
         }
