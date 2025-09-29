@@ -16,12 +16,16 @@ public class NettyWriteBo extends NettyBo {
 
     public String msg;
 
+    public NettyWriteBo() {
+    }
+
     public NettyWriteBo(ProjectAbstract pe) {
         super(pe);
     }
 
     public NettyWriteBo(ProjectAbstract pe, NetAddress netAddress) {
         super(pe);
+        this.netAddress = netAddress;
     }
 
     public NettyWriteBo(ProjectAbstract pe, NetAddress netAddress, String msg) {

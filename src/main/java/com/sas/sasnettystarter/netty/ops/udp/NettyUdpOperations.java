@@ -1,5 +1,6 @@
 package com.sas.sasnettystarter.netty.ops.udp;
 
+import com.sas.sasnettystarter.netty.handle.bo.NettyBo;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
 
 /**
@@ -13,9 +14,17 @@ public interface NettyUdpOperations {
 
     /**
      * 下发指令
+     *
      * @param writeData 下发数据体
      */
-    void distributeInstruct(NettyWriteBo writeData);
+    <T extends NettyWriteBo> void distributeInstruct(T writeData);
+
+    /**
+     * 下发指令
+     *
+     * @param writeData 下发数据体
+     */
+     void distributeObjInstruct(Object writeData);
 
 
 }
