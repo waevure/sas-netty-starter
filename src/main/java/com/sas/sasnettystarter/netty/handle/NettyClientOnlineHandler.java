@@ -18,8 +18,13 @@ public class NettyClientOnlineHandler extends LogicHandler {
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        if (evt instanceof NettyOnlineBo online) {
-            log.info("{}-{}-上线: {}", online.getPe().toStr(), NetAddress.nettyRemoteAddress(ctx.channel()).ipPort(), GsonUtils.toString(online));
+        if (evt instanceof NettyOnlineBo) {
+            NettyOnlineBo online = (NettyOnlineBo) evt;
+            log.info("{}-{}-上线: {}",
+                    online.getPe().toStr(),
+                    NetAddress.nettyRemoteAddress(ctx.channel()).ipPort(),
+                    GsonUtils.toString(online)
+            );
         } else {
             super.userEventTriggered(ctx, evt);
         }

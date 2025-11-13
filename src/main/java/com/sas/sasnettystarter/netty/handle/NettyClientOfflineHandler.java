@@ -18,8 +18,12 @@ public class NettyClientOfflineHandler extends LogicHandler {
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        if (evt instanceof NettyOfflineBo offline) {
-            log.info("{}-{}-下线: {}", offline.getPe().toStr(), NetAddress.nettyRemoteAddress(ctx.channel()).ipPort(), GsonUtils.toString(offline));
+        if (evt instanceof NettyOfflineBo) {
+            NettyOfflineBo offline = (NettyOfflineBo) evt;
+            log.info("{}-{}-下线: {}",
+                    offline.getPe().toStr(),
+                    NetAddress.nettyRemoteAddress(ctx.channel()).ipPort(),
+                    GsonUtils.toString(offline));
         } else {
             super.userEventTriggered(ctx, evt);
         }
