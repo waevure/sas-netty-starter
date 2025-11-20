@@ -2,6 +2,7 @@ package com.sas.sasnettystarter.netty.ops.embedded;
 
 import com.sas.sasnettystarter.netty.NettyType;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
+import com.sas.sasnettystarter.netty.handle.bo.NettyReadBo;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
 import com.sas.sasnettystarter.netty.ops.core.NettyServerBaseContext;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -15,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
  * @Date: 2024-11-26 15:17
  * @Version: 1.0
  **/
-@Data
 @Slf4j
 public class NettyNoNetworkChannel extends NettyServerBaseContext implements NettyNoNetworkOperations {
 
@@ -27,8 +27,13 @@ public class NettyNoNetworkChannel extends NettyServerBaseContext implements Net
     }
 
     @Override
-    public void distributeInstruct(NettyWriteBo writeData) {
-        this.channel.writeInbound(writeData);
+    public void distributeInInstruct(NettyReadBo readBo) {
+        this.channel.writeInbound(readBo);
+    }
+
+    @Override
+    public void distributeOutInstruct(NettyWriteBo writeData) {
+        this.channel.writeOutbound(writeData);
     }
 
     @Override
