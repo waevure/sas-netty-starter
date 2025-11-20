@@ -12,6 +12,9 @@ public abstract class NettyReadBo extends NettyBo{
 
     public String msg;
 
+    public NettyReadBo() {
+    }
+
     public NettyReadBo(ProjectAbstract pe) {
         super(pe);
     }
