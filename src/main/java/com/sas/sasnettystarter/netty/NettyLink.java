@@ -8,11 +8,10 @@ import com.sas.sasnettystarter.netty.unpack.Unpacking;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOption;
+import io.netty.util.concurrent.EventExecutorGroup;
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 
 /**
@@ -96,6 +95,12 @@ public class NettyLink {
      * 启动成功回调
      */
     private Function<Channel, Boolean> startSuccessCallback;
+
+    /**
+     * 处理器线程池
+     * 必须使用EventExecutorGroup
+     */
+    private Map<String, EventExecutorGroup> handlerExecutorGroups = new HashMap<>();
 
 
     /**
@@ -206,12 +211,35 @@ public class NettyLink {
     }
 
     /**
+     * 添加读处理器
+     *
+     * @param readHandler
+     */
+    public NettyLink addReadHandler(EventExecutorGroup group, Class<? extends ReadHandler> readHandler) {
+        this.readHandlers.add(readHandler);
+        this.handlerExecutorGroups.put(readHandler.getName(), group);
+        return this;
+    }
+
+    /**
      * 添加写处理器(响应编码器)
      *
      * @param writeHandler
      */
     public NettyLink addWriteHandler(Class<? extends PacketEncoder> writeHandler) {
         this.writeHandlers.add(writeHandler);
+        return this;
+    }
+
+    /**
+     * 添加写处理器(响应编码器)
+     *
+     * @param group        线程池
+     * @param writeHandler
+     */
+    public NettyLink addWriteHandler(EventExecutorGroup group, Class<? extends PacketEncoder> writeHandler) {
+        this.writeHandlers.add(writeHandler);
+        this.handlerExecutorGroups.put(writeHandler.getName(), group);
         return this;
     }
 

@@ -1,5 +1,6 @@
 package com.sas.sasnettystarter.netty.ops.embedded;
 
+import com.sas.sasnettystarter.netty.handle.bo.NettyReadBo;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
 
 /**
@@ -15,6 +16,12 @@ public interface NettyNoNetworkOperations {
      * 下发指令
      * @param writeData
      */
-    void distributeInstruct(NettyWriteBo writeData);
+    void distributeInInstruct(NettyReadBo writeData);
+
+    /**
+     * 下发指令
+     * @param writeData
+     */
+    void distributeOutInstruct(NettyWriteBo writeData);
 
 }

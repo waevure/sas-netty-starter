@@ -23,13 +23,11 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.util.concurrent.EventExecutorGroup;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -43,7 +41,7 @@ import java.util.function.Function;
  */
 @Slf4j
 @Getter
-public class NettySupport extends PeBo{
+public class NettySupport extends PeBo {
 
     /**
      * netty类型
@@ -168,6 +166,8 @@ public class NettySupport extends PeBo{
             // 添加成功回调
             builder.addStartSuccessCallback(this.getNettyLink().getStartSuccessCallback());
         }
+        // 添加线程池组关系
+        builder.addHandlerExecutorGroups(this.getNettyLink().getHandlerExecutorGroups());
 
         // 启动netty
         NettyServerBaseContext mods;
@@ -272,6 +272,12 @@ public class NettySupport extends PeBo{
         public Function<Channel, Boolean> startSuccessCallback;
 
         /**
+         * 处理器线程池
+         * 必须使用EventExecutorGroup
+         */
+        public Map<String, EventExecutorGroup> handlerExecutorGroups = new HashMap<>();
+
+        /**
          * 添加option
          *
          * @param option
@@ -373,6 +379,17 @@ public class NettySupport extends PeBo{
          */
         public Builder addStartSuccessCallback(Function<Channel, Boolean> function) {
             this.startSuccessCallback = function;
+            return this;
+        }
+
+        /**
+         * 添加处理器-线程池组关系
+         *
+         * @param handlerExecutorGroups
+         * @return
+         */
+        public Builder addHandlerExecutorGroups(Map<String, EventExecutorGroup> handlerExecutorGroups) {
+            this.handlerExecutorGroups = handlerExecutorGroups;
             return this;
         }
 
@@ -562,8 +579,15 @@ public class NettySupport extends PeBo{
             //按顺序添加处理器
             for (Class<? extends ChannelHandler> handler : pipelines) {
                 try {
-                    //创建管道处理实例
-                    channel.pipeline().addLast(handler.getDeclaredConstructor().newInstance());
+                    // 获取该处理器对应的线程池组
+                    EventExecutorGroup group = this.handlerExecutorGroups.get(handler.getName());
+                    if (Objects.nonNull(group)) {
+                        //创建管道处理实例
+                        channel.pipeline().addLast(group, handler.getDeclaredConstructor().newInstance());
+                    } else {
+                        //创建管道处理实例
+                        channel.pipeline().addLast(handler.getDeclaredConstructor().newInstance());
+                    }
                 } catch (InstantiationException e) {
                     throw new RuntimeException(e);
                 } catch (IllegalAccessException e) {

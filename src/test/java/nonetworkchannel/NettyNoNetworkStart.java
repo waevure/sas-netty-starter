@@ -72,7 +72,7 @@ public class NettyNoNetworkStart {
             serverStart.startNoNetworkChannel(pe);
             Thread.sleep(1000);
             // 连接server
-            NettyNoNetworkGuide.noNetworkChannelOperations(pe).distributeInstruct(new NettyWriteBo(pe, new NetAddress("127.0.0.1", 6677), "wwwwhwh哈哈哈哈哈"));
+            NettyNoNetworkGuide.noNetworkChannelOperations(pe).distributeOutInstruct(new NettyWriteBo(pe, new NetAddress("127.0.0.1", 6677), "wwwwhwh哈哈哈哈哈"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
