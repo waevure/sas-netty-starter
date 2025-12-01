@@ -37,7 +37,7 @@ public class DefaultServerHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        log.info("信道未注册:{}", ctx.toString());
+        log.warn("信道未注册:{}", ctx.toString());
         super.channelUnregistered(ctx);
     }
 
@@ -62,7 +62,7 @@ public class DefaultServerHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        log.info("通道断开连接:{}", ctx.toString());
+        log.warn("通道断开连接:{}", ctx.toString());
     }
 
     /**
@@ -79,7 +79,7 @@ public class DefaultServerHandler extends ChannelInboundHandlerAdapter {
             byte[] bytes = new byte[byteBuf.readableBytes()];
             byteBuf.readBytes(bytes);
             String data = new String(bytes); // 这里只是演示
-            System.out.println("收到原始数据: " + data);
+            log.debug("收到原始数据: {}", data);
         }
 
     }
@@ -92,7 +92,7 @@ public class DefaultServerHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        log.info("通道读取完成:{}", ctx.toString());
+        log.debug("通道读取完成:{}", ctx.toString());
     }
 
     /**
@@ -104,7 +104,7 @@ public class DefaultServerHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        log.info("已触发用户事件:{}", ctx.toString());
+        log.debug("已触发用户事件:{}", ctx.toString());
     }
 
     /**
@@ -115,7 +115,7 @@ public class DefaultServerHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
-        log.info("频道可写入性已更改:{}", ctx.toString());
+        log.warn("频道可写入性已更改:{}", ctx.toString());
     }
 
     /**
@@ -127,6 +127,6 @@ public class DefaultServerHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.info("异常:{}", ctx.toString());
+        log.error("异常:{}", ctx.toString());
     }
 }
