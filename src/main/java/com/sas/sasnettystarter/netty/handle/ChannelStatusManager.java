@@ -37,7 +37,7 @@ public class ChannelStatusManager extends LogicHandler {
     private VariableChannelCache variableChannelCache;
 
     public ChannelStatusManager(TiFunction<ChannelHandlerContext, Object, ProjectAbstract, Object> function, VariableChannelCache variableChannelCache, ProjectAbstract pe) {
-        log.info("map引用:{}", variableChannelCache);
+        log.debug("map引用:{}", variableChannelCache);
         this.function = function;
         this.variableChannelCache = variableChannelCache;
         this.pe = pe;
@@ -52,7 +52,8 @@ public class ChannelStatusManager extends LogicHandler {
      */
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        log.info("{}-信道登记:{}", this.getPe().toStr(), ctx.toString());
+        log.debug("{}-信道登记:{}", this.getPe().toStr(), ctx.toString());
+        super.channelRegistered(ctx);
     }
 
     /**
@@ -137,6 +138,7 @@ public class ChannelStatusManager extends LogicHandler {
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
         log.debug("{}-通道读取完成:{}", this.getPe().toStr(), NetAddress.nettyRemoteAddress(ctx.channel()).ipPort());
+        super.channelReadComplete(ctx);
     }
 
     /**
@@ -148,7 +150,8 @@ public class ChannelStatusManager extends LogicHandler {
      */
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        log.info("{}-已触发用户事件:{}", this.getPe().toStr(), NetAddress.nettyRemoteAddress(ctx.channel()).ipPort());
+        log.debug("{}-已触发用户事件:{}", this.getPe().toStr(), NetAddress.nettyRemoteAddress(ctx.channel()).ipPort());
+        super.userEventTriggered(ctx, evt);
     }
 
     /**
@@ -160,6 +163,7 @@ public class ChannelStatusManager extends LogicHandler {
     @Override
     public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
         log.warn("{}-频道可写入性已更改:{}", this.getPe().toStr(), NetAddress.nettyRemoteAddress(ctx.channel()).ipPort());
+        super.channelWritabilityChanged(ctx);
     }
 
     /**
