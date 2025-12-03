@@ -6,6 +6,7 @@ import com.sas.sasnettystarter.netty.TiFunction;
 import com.sas.sasnettystarter.netty.cache.VariableChannelCache;
 import com.sas.sasnettystarter.netty.handle.bo.NettyOfflineBo;
 import com.sas.sasnettystarter.netty.handle.bo.NettyOnlineBo;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.ReferenceCountUtil;
 import lombok.Getter;
@@ -111,20 +112,14 @@ public class ChannelStatusManager extends LogicHandler {
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        boolean release = true;
-        try {
-            if (Objects.nonNull(this.getFunction())) {
-                // 所有设备状态
-                this.getFunction().apply(ctx, msg, this.getPe());
-            } else {
-                release = false;
-                super.channelRead(ctx, msg);
+        if (Objects.nonNull(this.getFunction())) {
+            try {
+                this.getFunction().apply(ctx, msg, getPe());
+            } finally {
+                ReferenceCountUtil.release(msg); // buf 生命周期到这结束
             }
-        } finally {
-            if (release) {
-                // 手动释放引用计数对象，防止内存泄漏
-                ReferenceCountUtil.release(msg);
-            }
+        } else {
+            ctx.fireChannelRead(msg); // 不处理就交给下游
         }
     }
 
