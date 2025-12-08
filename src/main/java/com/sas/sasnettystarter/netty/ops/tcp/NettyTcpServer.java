@@ -7,6 +7,7 @@ import com.sas.sasnettystarter.netty.ProjectAbstract;
 import com.sas.sasnettystarter.netty.cache.VariableChannelCache;
 import com.sas.sasnettystarter.netty.exception.NettyLinkException;
 import com.sas.sasnettystarter.netty.handle.ChannelStatusManager;
+import com.sas.sasnettystarter.netty.handle.bo.NettyReadBo;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
 import com.sas.sasnettystarter.netty.ops.core.NettyServerBaseContext;
 import io.netty.bootstrap.ServerBootstrap;
@@ -155,6 +156,33 @@ public class NettyTcpServer extends NettyServerBaseContext implements NettyTcpSe
         return this.getKeyMap().get(key);
     }
 
+    @Override
+    public void distributeInInstruct(String key, NettyReadBo readBo) {
+        // 获取通道
+        ChannelHandlerContext ctx = this.getCtx(key);
+        if (Objects.isNull(ctx)) {
+            throw new NettyLinkException(String.format("%s-TCP-服务端-链路未注册:%s", this.getPe().toStr(), key));
+        }
+        if (!ctx.channel().isActive()) {
+            throw new NettyLinkException(String.format("%s-TCP-服务端-链路未激活:%s", this.getPe().toStr(), key));
+        }
+        ctx.fireChannelRead(readBo);
+    }
+
+    @Override
+    public void distributeInInstruct(ChannelHandlerContext ctx, NettyReadBo readBo) {
+        Assert.notNull(ctx,"ctx为空,不可下发");
+        // 解析IP:PORT
+        NetAddress address = NetAddress.nettyRemoteAddress(ctx.channel());
+        if (Objects.isNull(ctx)) {
+            throw new NettyLinkException(String.format("%s-TCP-服务端-链路未注册:%s", this.getPe().toStr(), address.ipPort()));
+        }
+        if (!ctx.channel().isActive()) {
+            throw new NettyLinkException(String.format("%s-TCP-服务端-链路未激活:%s", this.getPe().toStr(), address.ipPort()));
+        }
+        ctx.fireChannelRead(readBo);
+    }
+
     /**
      * 下发指令
      *
@@ -162,7 +190,7 @@ public class NettyTcpServer extends NettyServerBaseContext implements NettyTcpSe
      * @param writeData
      */
     @Override
-    public void distributeInstruct(String key, NettyWriteBo writeData) {
+    public void distributeOutInstruct(String key, NettyWriteBo writeData) {
         // 获取通道
         ChannelHandlerContext ctx = this.getCtx(key);
         if (Objects.isNull(ctx)) {
@@ -181,7 +209,7 @@ public class NettyTcpServer extends NettyServerBaseContext implements NettyTcpSe
      * @param writeData
      */
     @Override
-    public void distributeInstruct(ChannelHandlerContext ctx, NettyWriteBo writeData) {
+    public void distributeOutInstruct(ChannelHandlerContext ctx, NettyWriteBo writeData) {
         Assert.notNull(ctx,"ctx为空,不可下发");
         // 解析IP:PORT
         NetAddress address = NetAddress.nettyRemoteAddress(ctx.channel());

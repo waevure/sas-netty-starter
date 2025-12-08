@@ -97,7 +97,7 @@ public class NettyTcpServerStart {
             VariableChannelCache variableChannelCache = NettyTcpServerGuide.support(pa).getNettyServerContext().getVariableChannelCache();
             // 下发指令
             for (ChannelHandlerContext ctx : variableChannelCache.channelActiveList()) {
-                ability.distributeInstruct(ctx, new NettyWriteBo(pa));
+                ability.distributeOutInstruct(ctx, new NettyWriteBo(pa));
             }
         }, 1, 3, TimeUnit.SECONDS);
     }
