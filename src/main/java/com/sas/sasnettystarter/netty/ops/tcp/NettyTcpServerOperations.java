@@ -1,5 +1,6 @@
 package com.sas.sasnettystarter.netty.ops.tcp;
 
+import com.sas.sasnettystarter.netty.handle.bo.NettyReadBo;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
 import io.netty.channel.ChannelHandlerContext;
 
@@ -30,17 +31,35 @@ public interface NettyTcpServerOperations {
 
     /**
      * 下发指令
+     * 执行netty的inbound
      * @param key
-     * @param writeData
+     * @param readBo
      */
-    void distributeInstruct(String key, NettyWriteBo writeData);
+    void distributeInInstruct(String key, NettyReadBo readBo);
 
     /**
      * 下发指令
+     * 执行netty的inbound
+     * @param ctx
+     * @param readBo
+     */
+    void distributeInInstruct(ChannelHandlerContext ctx, NettyReadBo readBo);
+
+    /**
+     * 下发指令
+     * 执行netty的outbound
+     * @param key
+     * @param writeData
+     */
+    void distributeOutInstruct(String key, NettyWriteBo writeData);
+
+    /**
+     * 下发指令
+     * 执行netty的outbound
      * @param ctx
      * @param writeData
      */
-    void distributeInstruct(ChannelHandlerContext ctx, NettyWriteBo writeData);
+    void distributeOutInstruct(ChannelHandlerContext ctx, NettyWriteBo writeData);
 
     /**
      * 全部注册通道
