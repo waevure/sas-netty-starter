@@ -2,6 +2,7 @@ package com.sas.sasnettystarter.netty;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.sas.sasnettystarter.netty.exception.NettyChannelException;
 import com.sas.sasnettystarter.netty.exception.NettyServerException;
 import com.sas.sasnettystarter.netty.handle.*;
 import com.sas.sasnettystarter.netty.log.LogMerge;
@@ -542,43 +543,44 @@ public class NettySupport extends PeBo {
          * @throws Exception
          */
         private void initChannelSupport(ProjectAbstract pe, Channel channel) throws Exception {
-            //日志添加到首位
-            if (ObjectUtil.isNotNull(logMerge)) {
-                LoggingHandler loggingHandler = new LoggingHandler(pe, logMerge.getLogLevel());
-                // 添加回调处理器
-                if (Objects.nonNull(logMerge.getLoggingCallBackFunc())) {
-                    loggingHandler.addStrLogCall(logMerge.getLoggingCallBackFunc());
+            try {
+                //日志添加到首位
+                if (ObjectUtil.isNotNull(logMerge)) {
+                    LoggingHandler loggingHandler = new LoggingHandler(pe, logMerge.getLogLevel());
+                    // 添加回调处理器
+                    if (Objects.nonNull(logMerge.getLoggingCallBackFunc())) {
+                        loggingHandler.addStrLogCall(logMerge.getLoggingCallBackFunc());
+                    }
+                    channel.pipeline().addLast(loggingHandler);
                 }
-                channel.pipeline().addLast(loggingHandler);
-            }
-            // beforePipelines在除日志之前执行
-            if (Objects.nonNull(beforePipelines)) {
-                // 执行beforePipelines
-                for (Function<Channel, Boolean> f : beforePipelines) {
-                    f.apply(channel);
+                // beforePipelines在除日志之前执行
+                if (Objects.nonNull(beforePipelines)) {
+                    // 执行beforePipelines
+                    for (Function<Channel, Boolean> f : beforePipelines) {
+                        f.apply(channel);
+                    }
                 }
-            }
-            //拆包次之
-            if (ObjectUtil.isNotNull(unpacking)) {
-                channel.pipeline().addLast(unpacking.buildHandler());
-            }
-            // 默认状态管理器是否启用
-            if (Objects.nonNull(defaultChannelStatus) && defaultChannelStatus) {
-                channel.pipeline().addLast(new ChannelStatusManager(defaultChannelReadFunc, nettyServerContext.getVariableChannelCache(), pe));
-                // 添加上线处理器
-                channel.pipeline().addLast(this.onlineUserLogic.getDeclaredConstructor().newInstance());
-                // 添加离线处理器
-                channel.pipeline().addLast(this.offlineUserLogic.getDeclaredConstructor().newInstance());
-            }
+                //拆包次之
+                if (ObjectUtil.isNotNull(unpacking)) {
+                    channel.pipeline().addLast(unpacking.buildHandler());
+                }
+                // 默认状态管理器是否启用
+                if (Objects.nonNull(defaultChannelStatus) && defaultChannelStatus) {
+                    channel.pipeline().addLast(new ChannelStatusManager(defaultChannelReadFunc, nettyServerContext.getVariableChannelCache(), pe));
+                    // 添加上线处理器
+                    channel.pipeline().addLast(this.onlineUserLogic.getDeclaredConstructor().newInstance());
+                    // 添加离线处理器
+                    channel.pipeline().addLast(this.offlineUserLogic.getDeclaredConstructor().newInstance());
+                }
 
-            //如果为null则创建默认的
-            if (CollectionUtil.isEmpty(pipelines)) {
-                channel.pipeline().addLast(new DefaultServerHandler());
-                return;
-            }
-            //按顺序添加处理器
-            for (Class<? extends ChannelHandler> handler : pipelines) {
-                try {
+                //如果为null则创建默认的
+                if (CollectionUtil.isEmpty(pipelines)) {
+                    channel.pipeline().addLast(new DefaultServerHandler());
+                    return;
+                }
+                //按顺序添加处理器
+                for (Class<? extends ChannelHandler> handler : pipelines) {
+
                     // 获取该处理器对应的线程池组
                     EventExecutorGroup group = this.handlerExecutorGroups.get(handler.getName());
                     if (Objects.nonNull(group)) {
@@ -588,11 +590,10 @@ public class NettySupport extends PeBo {
                         //创建管道处理实例
                         channel.pipeline().addLast(handler.getDeclaredConstructor().newInstance());
                     }
-                } catch (InstantiationException e) {
-                    throw new RuntimeException(e);
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
                 }
+            } catch (Exception e) {
+                log.error("netty channel构建异常", e);
+                throw new NettyChannelException(e.getMessage());
             }
         }
 

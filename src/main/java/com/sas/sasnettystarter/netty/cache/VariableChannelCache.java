@@ -3,6 +3,7 @@ package com.sas.sasnettystarter.netty.cache;
 import com.sas.sasnettystarter.netty.NetAddress;
 import com.sas.sasnettystarter.netty.PeBo;
 import com.sas.sasnettystarter.netty.ProjectAbstract;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,30 +26,30 @@ public class VariableChannelCache extends PeBo {
      * 通道缓存
      * key: ip:port
      */
-    private final Map<String, ChannelHandlerContext> MAP_CHANNEL = new ConcurrentHashMap<>();
+    private final Map<String, Channel> MAP_CHANNEL = new ConcurrentHashMap<>();
 
-    public ChannelHandlerContext getCtx(String key) {
+    public Channel getCtx(String key) {
         return this.MAP_CHANNEL.get(key);
     }
 
-    public ChannelHandlerContext putCtx(String key, ChannelHandlerContext ctx) {
-        return this.MAP_CHANNEL.compute(key, (k, oldCtx) -> {
-            if (oldCtx != null && oldCtx.channel().isActive()) {
+    public Channel putCtx(String key, Channel channel) {
+        return this.MAP_CHANNEL.compute(key, (k, oldChannel) -> {
+            if (oldChannel != null && oldChannel.isActive()) {
                 log.warn("{}-{}-已存在，进行关闭并添加新连接", this.getPe().toStr(), k);
-                oldCtx.close(); // 关闭旧连接
+                oldChannel.close(); // 关闭旧连接
             }
-            return ctx; // 放入新连接
+            return channel; // 放入新连接
         });
     }
 
-    public ChannelHandlerContext removeCtx(String key) {
+    public Channel removeCtx(String key) {
         return this.MAP_CHANNEL.remove(key);
     }
 
-    public ChannelHandlerContext removeCtx(ChannelHandlerContext ctx) {
-        for (Iterator<Map.Entry<String, ChannelHandlerContext>> it = MAP_CHANNEL.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<String, ChannelHandlerContext> entry = it.next();
-            if (entry.getValue() == ctx) {
+    public Channel removeCtx(Channel channel) {
+        for (Iterator<Map.Entry<String, Channel>> it = MAP_CHANNEL.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<String, Channel> entry = it.next();
+            if (entry.getValue() == channel) {
                 it.remove(); // 直接通过迭代器删除，效率高
                 return entry.getValue();
             }
@@ -66,7 +67,7 @@ public class VariableChannelCache extends PeBo {
     public Map<String, Boolean> channelActiveMap() {
         Map<String, Boolean> map = new HashMap<>();
         for (String key : this.MAP_CHANNEL.keySet()) {
-            map.put(key, this.MAP_CHANNEL.get(key).channel().isActive());
+            map.put(key, this.MAP_CHANNEL.get(key).isActive());
         }
         return map;
     }
@@ -76,7 +77,7 @@ public class VariableChannelCache extends PeBo {
      *
      * @return
      */
-    public List<ChannelHandlerContext> channelActiveList() {
+    public List<Channel> channelActiveList() {
         return new ArrayList<>(this.MAP_CHANNEL.values());
     }
 
@@ -87,10 +88,10 @@ public class VariableChannelCache extends PeBo {
      */
     public boolean destroy(ProjectAbstract pe) {
         // 关闭通道
-        for (ChannelHandlerContext ctx : this.MAP_CHANNEL.values()) {
-            if (ctx.channel().isOpen()) {
-                ctx.close().syncUninterruptibly();
-                log.info("{}[{}]销毁-通道关闭", pe.toStr(), NetAddress.nettyRemoteAddress(ctx.channel()).ipPort());
+        for (Channel channel: this.MAP_CHANNEL.values()) {
+            if (channel.isOpen()) {
+                channel.close().syncUninterruptibly();
+                log.info("{}[{}]销毁-通道关闭", pe.toStr(), NetAddress.nettyRemoteAddress(channel).ipPort());
             }
         }
         // 清理map

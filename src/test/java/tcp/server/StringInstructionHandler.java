@@ -21,7 +21,7 @@ public class StringInstructionHandler implements TiFunction<ChannelHandlerContex
     public Boolean apply(ChannelHandlerContext ctx, ByteBuf msg, ProjectAbstract pa) {
         String ipPort = NetAddress.nettyRemoteAddress(ctx.channel()).ipPort();
         // 添加缓存
-        NettyTcpServerGuide.tcpServerOperations(new NettyTcpServerProject("TCP服务端", "10001")).putCtx(ipPort, ctx);
+        NettyTcpServerGuide.tcpServerOperations(new NettyTcpServerProject("TCP服务端", "10001")).putCtx(ipPort, ctx.channel());
         // ByteBuf -> byte[]
         byte[] bytes = new byte[msg.readableBytes()];
         msg.readBytes(bytes);

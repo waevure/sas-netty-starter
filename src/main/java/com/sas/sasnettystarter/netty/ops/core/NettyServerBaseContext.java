@@ -61,7 +61,7 @@ public abstract class NettyServerBaseContext extends NettyProjectContext {
     /**
      * 外部使用的通道缓存，一般key为设备唯一编码。其实就是存一些执行力注册的设备
      */
-    private Map<String, ChannelHandlerContext> keyMap = new ConcurrentHashMap<>();
+    private Map<String, Channel> keyMap = new ConcurrentHashMap<>();
 
     /**
      * 服务通道构建结果
@@ -224,9 +224,9 @@ public abstract class NettyServerBaseContext extends NettyProjectContext {
      * @return
      */
     public <T extends NettyWriteBo> void writeAndFlush(T writeBo) {
-        ChannelHandlerContext ctx = this.variableChannelCache.getCtx(writeBo.ipPortStr());
-        if (Objects.nonNull(ctx)) {
-            ctx.channel().writeAndFlush(writeBo);
+        Channel channel = this.variableChannelCache.getCtx(writeBo.ipPortStr());
+        if (Objects.nonNull(channel)) {
+            channel.writeAndFlush(writeBo);
         } else {
             log.error("{}-发送数据失败,链路不存在-{}", writeBo.ipPortStr(), writeBo.getMsg());
             throw new NettyServiceException("发送数据失败,链路不存在");
@@ -239,8 +239,8 @@ public abstract class NettyServerBaseContext extends NettyProjectContext {
      * @param netAddress
      */
     public void closeConnect(NetAddress netAddress) {
-        ChannelHandlerContext ctx = this.variableChannelCache.getCtx(netAddress.ipPort());
-        ctx.channel().close();
+        Channel channel = this.variableChannelCache.getCtx(netAddress.ipPort());
+        channel.close();
     }
 
     /**
@@ -250,9 +250,9 @@ public abstract class NettyServerBaseContext extends NettyProjectContext {
      * @return
      */
     public Boolean channelActive(NetAddress netAddress) {
-        ChannelHandlerContext context = this.variableChannelCache.getCtx(netAddress.ipPort());
-        if (ObjectUtil.isNotNull(context)) {
-            return context.channel().isActive();
+        Channel channel = this.variableChannelCache.getCtx(netAddress.ipPort());
+        if (ObjectUtil.isNotNull(channel)) {
+            return channel.isActive();
         }
         return false;
     }

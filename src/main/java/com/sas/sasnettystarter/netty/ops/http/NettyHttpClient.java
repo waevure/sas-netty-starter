@@ -111,8 +111,8 @@ public class NettyHttpClient extends NettyServerBaseContext implements NettyHttp
                                  Function<HttpHeaders, Boolean> headerFunc,
                                  Function<ChannelFuture, Boolean> callback) {
         // 获取请求地址
-        ChannelHandlerContext ctx = this.getVariableChannelCache().getCtx(netAddress.ipPort());
-        if (Objects.isNull(ctx) || !ctx.channel().isActive()) {
+        Channel channel = this.getVariableChannelCache().getCtx(netAddress.ipPort());
+        if (Objects.isNull(channel) || !channel.isActive()) {
             log.error("连接不存在:{}", netAddress.ipPort());
             return;
         }
@@ -130,7 +130,7 @@ public class NettyHttpClient extends NettyServerBaseContext implements NettyHttp
         headerFunc.apply(request.headers());
 
         // 发送请求
-        ChannelFuture future = ctx.writeAndFlush(request);
+        ChannelFuture future = channel.writeAndFlush(request);
         // 回调
         future.addListener((ChannelFutureListener) f -> {
             if (Objects.nonNull(callback)) {

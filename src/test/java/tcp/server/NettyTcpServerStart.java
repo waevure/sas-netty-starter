@@ -11,6 +11,7 @@ import com.sas.sasnettystarter.netty.log.LogMerge;
 import com.sas.sasnettystarter.netty.ops.tcp.NettyTcpServerOperations;
 import com.sas.sasnettystarter.netty.unpack.Unpacking;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.logging.LogLevel;
@@ -96,8 +97,8 @@ public class NettyTcpServerStart {
             // 获取所有通道
             VariableChannelCache variableChannelCache = NettyTcpServerGuide.support(pa).getNettyServerContext().getVariableChannelCache();
             // 下发指令
-            for (ChannelHandlerContext ctx : variableChannelCache.channelActiveList()) {
-                ability.distributeOutInstruct(ctx, new NettyWriteBo(pa));
+            for (Channel channel : variableChannelCache.channelActiveList()) {
+                ability.distributeOutInstruct(channel, new NettyWriteBo(pa));
             }
         }, 1, 3, TimeUnit.SECONDS);
     }

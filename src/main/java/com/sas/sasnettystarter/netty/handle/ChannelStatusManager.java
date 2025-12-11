@@ -54,6 +54,7 @@ public class ChannelStatusManager extends LogicHandler {
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         log.info("{}-信道登记:{}", this.getPe().toStr(), ctx.toString());
+        super.channelRegistered(ctx);
     }
 
     /**
@@ -81,7 +82,7 @@ public class ChannelStatusManager extends LogicHandler {
         //解析channel
         String key = NetAddress.nettyRemoteAddress(ctx.channel()).ipPort();
         //加入缓存数据
-        this.getVariableChannelCache().putCtx(key, ctx);
+        this.getVariableChannelCache().putCtx(key, ctx.channel());
         // 写入用户事件
         ctx.fireUserEventTriggered(new NettyOnlineBo(this.getPe()));
         log.info("{}-沟道激活:{}", this.getPe().toStr(), NetAddress.nettyRemoteAddress(ctx.channel()).ipPort());
@@ -97,7 +98,7 @@ public class ChannelStatusManager extends LogicHandler {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         //释放资源
-        this.getVariableChannelCache().removeCtx(ctx);
+        this.getVariableChannelCache().removeCtx(ctx.channel());
         // 写入用户事件
         ctx.fireUserEventTriggered(new NettyOfflineBo(this.getPe()));
         log.warn("{}-连接断开:{}", this.getPe().toStr(), NetAddress.nettyRemoteAddress(ctx.channel()).ipPort());
@@ -132,6 +133,7 @@ public class ChannelStatusManager extends LogicHandler {
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
         log.debug("{}-通道读取完成:{}", this.getPe().toStr(), NetAddress.nettyRemoteAddress(ctx.channel()).ipPort());
+        super.channelReadComplete(ctx);
     }
 
     /**
@@ -144,6 +146,7 @@ public class ChannelStatusManager extends LogicHandler {
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         log.info("{}-已触发用户事件:{}", this.getPe().toStr(), NetAddress.nettyRemoteAddress(ctx.channel()).ipPort());
+        super.userEventTriggered(ctx, evt);
     }
 
     /**
@@ -155,6 +158,7 @@ public class ChannelStatusManager extends LogicHandler {
     @Override
     public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
         log.warn("{}-频道可写入性已更改:{}", this.getPe().toStr(), NetAddress.nettyRemoteAddress(ctx.channel()).ipPort());
+        super.channelWritabilityChanged(ctx);
     }
 
     /**
@@ -168,7 +172,7 @@ public class ChannelStatusManager extends LogicHandler {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         cause.printStackTrace();
         //释放资源
-        this.getVariableChannelCache().removeCtx(ctx);
+        this.getVariableChannelCache().removeCtx(ctx.channel());
         // 写入用户事件
         ctx.fireUserEventTriggered(new NettyOfflineBo(this.getPe()));
         log.error("{}-异常-断开连接:{}", this.getPe().toStr(), NetAddress.nettyRemoteAddress(ctx.channel()).ipPort());
