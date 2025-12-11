@@ -42,27 +42,6 @@ public class TaskQueue {
                     }
                     // 获取当前时间
                     Long nowTime = System.currentTimeMillis();
-                    // 判断是否过了延时时间
-                    if (Objects.nonNull(node.getDelayTime())){
-                        if (!(nowTime > (node.getStartTime() + node.getDelayTime()))) {
-                            // 不满足则加入重入数组
-                            reenTryList.add(node);
-                            log.info("任务不满足延时条件，放回队列:{}", node.getName());
-                            continue;
-                        }
-                    }
-
-                    // 到期时间
-                    if (Objects.nonNull(node.getExpireTime())){
-                        // 判断数据是否过期
-                        if (nowTime > (node.getStartTime() + node.getExpireTime())) {
-                            // 超过则过期
-                            log.warn("任务过期:{}", node.getName());
-                            return;
-                        }
-                    }
-
-                    // 满足上述条件则递归
                     // 0-重入队列，1-执行成功，2-任务过期，3-执行失败
                     Integer rs = recursionExecute(node, nowTime);
                     if (1 == rs) {
@@ -116,7 +95,6 @@ public class TaskQueue {
             if (!node.getOnceFuncExecute()) {
                 node.setOnceFuncExecute(true);
                 node.getOnceFunc().execute();
-
             }
         }
 
