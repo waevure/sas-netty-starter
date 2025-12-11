@@ -2,6 +2,7 @@ package com.sas.sasnettystarter.netty.ops.tcp;
 
 import com.sas.sasnettystarter.netty.handle.bo.NettyReadBo;
 import com.sas.sasnettystarter.netty.handle.bo.NettyWriteBo;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 
 import java.util.Map;
@@ -20,14 +21,14 @@ public interface NettyTcpServerOperations {
      * @param key
      * @param ctx
      */
-    void putCtx(String key, ChannelHandlerContext ctx);
+    void putCtx(String key, Channel ctx);
 
     /**
      * 获取ctx缓存
      * @param key
      * @return
      */
-    ChannelHandlerContext getCtx(String key);
+    Channel getCtx(String key);
 
     /**
      * 下发指令
@@ -43,7 +44,7 @@ public interface NettyTcpServerOperations {
      * @param ctx
      * @param readBo
      */
-    void distributeInInstruct(ChannelHandlerContext ctx, NettyReadBo readBo);
+    void distributeInInstruct(Channel ctx, NettyReadBo readBo);
 
     /**
      * 下发指令
@@ -59,13 +60,13 @@ public interface NettyTcpServerOperations {
      * @param ctx
      * @param writeData
      */
-    void distributeOutInstruct(ChannelHandlerContext ctx, NettyWriteBo writeData);
+    void distributeOutInstruct(Channel ctx, NettyWriteBo writeData);
 
     /**
      * 全部注册通道
      * @return
      */
-    Map<String, ChannelHandlerContext> registerClientChannel();
+    Map<String, Channel> registerClientChannel();
 
     /**
      * 销毁TcpServer服务

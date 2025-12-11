@@ -80,7 +80,7 @@ import java.util.Objects;
  * .addWriteHandler(StringCusWriter.class);
  * 不开启状态管理器的话，可以在处理器或者逻辑处理器中进行添加，但是断开的话不是很好移除。所以建议仿照{@link ChannelStatusManager}写一个状态管理器,
  * 然后添加到拆包后面.addLogicHandler(ChannelStatusManager.class);管理状态的时候最好使用{@link NettyGuideAbstract#tcpServerOperations(ProjectAbstract)}获取tcpServer能力，
- * 然后{@link NettyTcpServer#putCtx(String, ChannelHandlerContext)}或{@link NettyTcpServer#getCtx(String)}进行添加或删除，这样销毁的时候会自动销毁校友连接。
+ * 然后{@link NettyTcpServer#putCtx(String, Channel)}或{@link NettyTcpServer#getCtx(String)}进行添加或删除，这样销毁的时候会自动销毁校友连接。
  * 自己管理通道则需要自己销毁连接。
  *
  * @ClassName: NettyTcpServer
@@ -135,7 +135,7 @@ public class NettyTcpServer extends NettyServerBaseContext implements NettyTcpSe
      * @param newCtx
      */
     @Override
-    public void putCtx(String key, ChannelHandlerContext newCtx) {
+    public void putCtx(String key, Channel newCtx) {
         this.getKeyMap().compute(key, (k, oldCtx) -> {
             if (oldCtx != null) {
                 log.warn("{}-{}-已存在，进行关闭并添加新连接", this.getPe().toStr(), k);
@@ -152,35 +152,24 @@ public class NettyTcpServer extends NettyServerBaseContext implements NettyTcpSe
      * @return
      */
     @Override
-    public ChannelHandlerContext getCtx(String key) {
+    public Channel getCtx(String key) {
         return this.getKeyMap().get(key);
     }
 
     @Override
     public void distributeInInstruct(String key, NettyReadBo readBo) {
         // 获取通道
-        ChannelHandlerContext ctx = this.getCtx(key);
-        if (Objects.isNull(ctx)) {
-            throw new NettyLinkException(String.format("%s-TCP-服务端-链路未注册:%s", this.getPe().toStr(), key));
-        }
-        if (!ctx.channel().isActive()) {
-            throw new NettyLinkException(String.format("%s-TCP-服务端-链路未激活:%s", this.getPe().toStr(), key));
-        }
-        ctx.fireChannelRead(readBo);
+        Channel channel = this.getCtx(key);
+        // 下发
+        this.distributeInInstruct(channel, readBo);
     }
 
     @Override
-    public void distributeInInstruct(ChannelHandlerContext ctx, NettyReadBo readBo) {
-        Assert.notNull(ctx,"ctx为空,不可下发");
-        // 解析IP:PORT
-        NetAddress address = NetAddress.nettyRemoteAddress(ctx.channel());
-        if (Objects.isNull(ctx)) {
-            throw new NettyLinkException(String.format("%s-TCP-服务端-链路未注册:%s", this.getPe().toStr(), address.ipPort()));
-        }
-        if (!ctx.channel().isActive()) {
-            throw new NettyLinkException(String.format("%s-TCP-服务端-链路未激活:%s", this.getPe().toStr(), address.ipPort()));
-        }
-        ctx.fireChannelRead(readBo);
+    public void distributeInInstruct(Channel channel, NettyReadBo readBo) {
+        // 通道检测
+        this.channelCheck(channel);
+        // 下发
+        channel.pipeline().fireChannelRead(readBo);
     }
 
     /**
@@ -192,34 +181,40 @@ public class NettyTcpServer extends NettyServerBaseContext implements NettyTcpSe
     @Override
     public void distributeOutInstruct(String key, NettyWriteBo writeData) {
         // 获取通道
-        ChannelHandlerContext ctx = this.getCtx(key);
-        if (Objects.isNull(ctx)) {
-            throw new NettyLinkException(String.format("%s-TCP-服务端-链路未注册:%s", this.getPe().toStr(), key));
-        }
-        if (!ctx.channel().isActive()) {
-            throw new NettyLinkException(String.format("%s-TCP-服务端-链路未激活:%s", this.getPe().toStr(), key));
-        }
-        ctx.channel().writeAndFlush(writeData);
+        Channel channel = this.getCtx(key);
+        // 下发
+        this.distributeOutInstruct(channel, writeData);
     }
 
     /**
      * 下发指令
      *
-     * @param ctx
+     * @param channel
      * @param writeData
      */
     @Override
-    public void distributeOutInstruct(ChannelHandlerContext ctx, NettyWriteBo writeData) {
-        Assert.notNull(ctx,"ctx为空,不可下发");
+    public void distributeOutInstruct(Channel channel, NettyWriteBo writeData) {
+        // 通道检测
+        this.channelCheck(channel);
+        // 下发
+        channel.writeAndFlush(writeData);
+    }
+
+    /**
+     * 通道检测
+     *
+     * @param channel
+     */
+    private void channelCheck(Channel channel) {
+        Assert.notNull(channel, "channel为空,不可下发");
         // 解析IP:PORT
-        NetAddress address = NetAddress.nettyRemoteAddress(ctx.channel());
-        if (Objects.isNull(ctx)) {
+        NetAddress address = NetAddress.nettyRemoteAddress(channel);
+        if (Objects.isNull(channel)) {
             throw new NettyLinkException(String.format("%s-TCP-服务端-链路未注册:%s", this.getPe().toStr(), address.ipPort()));
         }
-        if (!ctx.channel().isActive()) {
+        if (!channel.isActive()) {
             throw new NettyLinkException(String.format("%s-TCP-服务端-链路未激活:%s", this.getPe().toStr(), address.ipPort()));
         }
-        ctx.channel().writeAndFlush(writeData);
     }
 
     /**
@@ -228,7 +223,7 @@ public class NettyTcpServer extends NettyServerBaseContext implements NettyTcpSe
      * @return
      */
     @Override
-    public Map<String, ChannelHandlerContext> registerClientChannel() {
+    public Map<String, Channel> registerClientChannel() {
         return this.getKeyMap();
     }
 
@@ -241,9 +236,9 @@ public class NettyTcpServer extends NettyServerBaseContext implements NettyTcpSe
             log.info("{}-TCP-服务端-开始销毁", peStr);
             // 关闭客户端缓存
             for (String key : this.getKeyMap().keySet()) {
-                ChannelHandlerContext ctx = this.getKeyMap().get(key);
-                if (ctx.channel().isOpen()) {
-                    ctx.close().syncUninterruptibly();
+                Channel channel = this.getKeyMap().get(key);
+                if (channel.isOpen()) {
+                    channel.close().syncUninterruptibly();
                     log.info("{}-{}-关闭", peStr, key);
                 } else {
                     log.info("{}-{}-已关闭", peStr, key);
