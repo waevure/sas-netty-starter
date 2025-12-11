@@ -3,26 +3,29 @@ package com.sas.sasnettystarter.netty.task;
 import com.sas.sasnettystarter.netty.task.node.TaskBuild;
 import com.sas.sasnettystarter.netty.task.node.TaskNode;
 
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+
 /**
  * TaskNode node = TaskGuide
- *                 .newBuild()
- *                 .addTaskNode(
- *                         new TaskNode()
- *                                 .name("测试任务1")
- *                                 .expireTime(10 * 1000L)
- *                                 .delayTime(5 * 1000L)
- *                                 .taskFunction(()->{ System.out.println("测试任务1"); return false;})
- *                 )
- *                 .addTaskNode(
- *                         new TaskNode()
- *                                 .name("测试任务2")
- *                                 // 过期时间和延时执行时间不填的话遵循第一个进行判断
- *                                 .expireTime(30 * 1000L)
- *                                 .delayTime(20 * 1000L)
- *                                 .taskFunction(()->{ System.out.println("测试任务2"); return true;})
- *                 )
- *                 .build();
- *         TaskGuide.addQueueTask(node);
+ * .newBuild()
+ * .addTaskNode(
+ * new TaskNode()
+ * .name("测试任务1")
+ * .expireTime(10 * 1000L)
+ * .delayTime(5 * 1000L)
+ * .taskFunction(()->{ System.out.println("测试任务1"); return false;})
+ * )
+ * .addTaskNode(
+ * new TaskNode()
+ * .name("测试任务2")
+ * // 过期时间和延时执行时间不填的话遵循第一个进行判断
+ * .expireTime(30 * 1000L)
+ * .delayTime(20 * 1000L)
+ * .taskFunction(()->{ System.out.println("测试任务2"); return true;})
+ * )
+ * .build();
+ * TaskGuide.addQueueTask(node);
+ *
  * @ClassName: TaskGuide
  * @Description: 作业引导
  * @Author: Wqy
@@ -37,7 +40,7 @@ public class TaskGuide {
     }
 
     // 创建任务对象
-    public static TaskQueue newTaskQueue(){
+    public static TaskQueue newTaskQueue() {
         return new TaskQueue();
     }
 
@@ -48,5 +51,34 @@ public class TaskGuide {
      */
     public static void addQueueTask(TaskNode node) {
         TaskQueue.TASK_QUEUE.add(node);
+    }
+
+
+    public static void main(String[] args) {
+        new TaskInit().initTask(new ScheduledThreadPoolExecutor(2));
+        TaskNode node = TaskGuide
+                .newBuild()
+                .addTaskNode(
+                        new TaskNode()
+                                .name("测试任务1")
+                                .expireTime(10 * 1000L)
+                                .delayTime(5 * 1000L)
+                                .taskFunction(() -> {
+                                    System.out.println("测试任务1");
+                                    return true;
+                                })
+                )
+                .addTaskNode(
+                        new TaskNode()
+                                .name("测试任务2")
+                                // 过期时间和延时执行时间不填的话遵循第一个进行判断
+                                .expireTime(30 * 1000L)
+                                .taskFunction(() -> {
+                                    System.out.println("测试任务2");
+                                    return true;
+                                })
+                )
+                .build();
+        TaskGuide.addQueueTask(node);
     }
 }
