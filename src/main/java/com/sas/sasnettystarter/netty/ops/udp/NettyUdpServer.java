@@ -85,11 +85,19 @@ public class NettyUdpServer extends NettyServerBaseContext implements NettyUdpOp
 
     @Override
     public <T extends NettyWriteBo> void distributeInstruct(T writeData) {
+        if (Objects.isNull(this.getChannelFuture()) || Objects.isNull(this.getChannelFuture().channel()) || !this.getChannelFuture().channel().isActive()) {
+            log.error("{}-UDP-下发失败,通道不存在或未激活", this.getPe().toStr());
+            return;
+        }
         this.getChannelFuture().channel().writeAndFlush(writeData);
     }
 
     @Override
     public void distributeObjInstruct(Object writeData) {
+        if (Objects.isNull(this.getChannelFuture()) || Objects.isNull(this.getChannelFuture().channel()) || !this.getChannelFuture().channel().isActive()) {
+            log.error("{}-UDP-下发失败,通道不存在或未激活", this.getPe().toStr());
+            return;
+        }
         this.getChannelFuture().channel().writeAndFlush(writeData);
     }
 

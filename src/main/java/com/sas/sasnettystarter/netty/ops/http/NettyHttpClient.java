@@ -39,7 +39,20 @@ public class NettyHttpClient extends NettyServerBaseContext implements NettyHttp
 
     @Override
     public void awaitCloseSync(Integer port) {
-
+        try {
+            // 进行回调
+            if (Objects.nonNull(this.getStartSuccessCallback())) {
+                this.getStartSuccessCallback().apply(null);
+            }
+            // 等待所有客户端链路关闭
+            this.getBootstrap().config().group().terminationFuture().sync();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            // 优雅退出，释放NIO线程组
+            this.getBossGroup().shutdownGracefully().syncUninterruptibly();
+            this.printNettyBootstrapGroupStatus();
+        }
     }
 
     @Override
@@ -91,7 +104,6 @@ public class NettyHttpClient extends NettyServerBaseContext implements NettyHttp
             } else {
                 future.cause().printStackTrace();
                 log.info("[{}]-{}-HTTP-客户端-同步连接失败", this.getPe().toStr(), netAddress.ipPort());
-                this.getChannelFutures().put(netAddress.ipPort(), future);
                 return false;
             }
         } catch (Exception e) {
@@ -111,11 +123,13 @@ public class NettyHttpClient extends NettyServerBaseContext implements NettyHttp
                                  Function<HttpHeaders, Boolean> headerFunc,
                                  Function<ChannelFuture, Boolean> callback) {
         // 获取请求地址
-        Channel channel = this.getVariableChannelCache().getCtx(netAddress.ipPort());
-        if (Objects.isNull(channel) || !channel.isActive()) {
-            log.error("连接不存在:{}", netAddress.ipPort());
+        ChannelFuture cf = this.getChannelFutures().get(netAddress.ipPort());
+        if (Objects.isNull(cf) || Objects.isNull(cf.channel()) || !cf.channel().isActive()) {
+            log.error("连接不存在或未激活:{}", netAddress.ipPort());
             return;
         }
+        // 获取channel
+        Channel channel = cf.channel();
         // 创建 POST 请求
         FullHttpRequest request = new DefaultFullHttpRequest(
                 HttpVersion.HTTP_1_1,
@@ -127,7 +141,9 @@ public class NettyHttpClient extends NettyServerBaseContext implements NettyHttp
         request.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, request.content().readableBytes());
         request.headers().set(HttpHeaderNames.HOST, netAddress.getIp());
         // 设置消息头
-        headerFunc.apply(request.headers());
+        if (Objects.nonNull(headerFunc)) {
+            headerFunc.apply(request.headers());
+        }
 
         // 发送请求
         ChannelFuture future = channel.writeAndFlush(request);

@@ -240,7 +240,11 @@ public abstract class NettyServerBaseContext extends NettyProjectContext {
      */
     public void closeConnect(NetAddress netAddress) {
         Channel channel = this.variableChannelCache.getCtx(netAddress.ipPort());
-        channel.close();
+        if (Objects.nonNull(channel) && channel.isActive()) {
+            channel.close();
+        } else {
+            log.warn("{}-关闭连接失败,链路不存在或未激活:{}", this.getPe().toStr(), netAddress.ipPort());
+        }
     }
 
     /**
