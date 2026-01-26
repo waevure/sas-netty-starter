@@ -16,7 +16,7 @@
     <!-- ★★★ groupId 必须是你 GitHub 名称 ★★★ -->
     <groupId>io.github.waevure</groupId>
     <artifactId>sas-netty-starter-boot2</artifactId>
-    <version>0.0.2.3</version>
+    <version>0.0.2.4</version>
 
     <name>sas-netty-starter-boot2</name>
     <description>Spring Boot 2.x Netty Starter</description>
