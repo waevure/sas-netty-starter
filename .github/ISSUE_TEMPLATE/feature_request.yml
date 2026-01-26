@@ -1,0 +1,33 @@
+name: Feature request
+description: Suggest an idea for sas-netty-starter
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: 你遇到的痛点或缺口
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: 你的方案或 API 设计想法
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: 是否有替代方案
+    validations:
+      required: false
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: 其他补充说明
+    validations:
+      required: false
