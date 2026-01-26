@@ -23,3 +23,11 @@
 
 ## 完整文档
 详见 `PROJECT_GUIDE.md`。
+
+## Demo 入口
+- `src/test/java/demo/DemoTcpServer.java`
+- `src/test/java/demo/DemoTcpClient.java`
+- `src/test/java/demo/DemoHttpServer.java`
+- `src/test/java/demo/DemoHttpClient.java`
+- `src/test/java/demo/DemoUdp.java`
+- `src/test/java/demo/DemoNoNetwork.java`

@@ -93,6 +93,14 @@ UDP 和 NO_NETWORK_CHANNEL 不启用该逻辑。
 ## 示例
 以下示例可在 `src/test/java` 中找到完整实现：
 
+### Demo 入口（最小可跑）
+- `src/test/java/demo/DemoTcpServer.java`
+- `src/test/java/demo/DemoTcpClient.java`
+- `src/test/java/demo/DemoHttpServer.java`
+- `src/test/java/demo/DemoHttpClient.java`
+- `src/test/java/demo/DemoUdp.java`
+- `src/test/java/demo/DemoNoNetwork.java`
+
 ### TCP 服务端
 参考：`src/test/java/tcp/server/NettyTcpServerStart.java`
 ```java
@@ -182,4 +190,3 @@ mvn -DskipTests package
 - TCP/HTTP 默认支持 `openDefaultChannelStatus` 管理通道状态，UDP/无网络模式不生效。
 - 若不启用默认状态管理器，请自行维护通道缓存与资源释放。
 - HTTP 使用时需在 `beforePipelines` 中加入 HTTP 编解码器。
-
