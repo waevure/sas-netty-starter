@@ -1,14 +1,14 @@
 # sas-netty-starter 说明文档
 
 ## 项目概览
-`sas-netty-starter` 是一个基于 Netty 的通信脚手架（Spring Boot 2.x 依赖风格），提供统一的启动流程、通道管理和处理器链组装能力，支持 TCP/HTTP/UDP 以及“无网络嵌入式通道”场景。
+`sas-netty-starter` 是一个基于 Netty 的通信脚手架（Spring Boot 3.x 依赖风格），提供统一的启动流程、通道管理和处理器链组装能力，支持 TCP/HTTP/UDP 以及“无网络嵌入式通道”场景。
 
 核心目标：用一致的方式搭建不同协议的网络通信项目，并在运行期获得统一的操作接口（Operations）与通道管理能力。
 
 ## 技术栈与依赖
-- Java 8
-- Spring Boot 2.7.18（父工程）
-- Netty（`netty-all`）
+- Java 21
+- Spring Boot 3.4.12（父工程）
+- Netty（`netty-all`，由 Spring Boot 依赖管理引入）
 - Hutool（工具包）
 - Gson（JSON）
 - Lombok（代码简化）
